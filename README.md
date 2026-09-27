@@ -6,11 +6,7 @@ LightMediaBrowser is built with **C++20 and Qt 6**. It keeps your original media
 
 ## Demo
 
-> Demo videos coming soon.
-
-<!--
 <img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/3ae520c6-77af-4cc9-bb7a-9b75858520f1" />
--->
 
 ## Features
 
