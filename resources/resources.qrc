@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/migrations">
+        <file alias="001_initial.sql">migrations/001_initial.sql</file>
+        <file alias="002_favorites.sql">migrations/002_favorites.sql</file>
+        <file alias="003_play_count.sql">migrations/003_play_count.sql</file>
+        <file alias="004_indexes.sql">migrations/004_indexes.sql</file>
+        <file alias="005_hierarchical_tags.sql">migrations/005_hierarchical_tags.sql</file>
+    </qresource>
+</RCC>
