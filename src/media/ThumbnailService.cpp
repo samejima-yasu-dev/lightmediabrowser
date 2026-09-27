@@ -10,7 +10,7 @@
 
 ThumbnailService::ThumbnailService(QObject *parent) : QObject(parent)
 {
-    // CPU使用率が100%に張り付くのを防ぐため、並列生成スレッド数をコア数に応じて抑制（最大2スレッド）
+    // CPU使用率が100%に張り付くのを防ぐため、並列生成スレッド数をコア数に応じて抑制（最大4スレッド）
     const int threadCount = qBound(1, QThread::idealThreadCount() / 2, 4);
     m_pool.setMaxThreadCount(threadCount);
 }

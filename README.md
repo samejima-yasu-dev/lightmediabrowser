@@ -1,47 +1,109 @@
 # LightMediaBrowser
 
-A fast, lightweight, local-first media browser for managing and browsing large collections of local video files.
+**LightMediaBrowser is a fast, lightweight, local-first application for organizing and browsing large collections of local video files.**
 
-LightMediaBrowser is built with **C++20 and Qt 6**. It keeps your original media files untouched and stores library information and metadata separately in a SQLite database.
+It is designed specifically for **video management** — scanning, browsing, searching, tagging, and organizing your collection.
 
-## Demo
+**It is not a video player.**
+Use the video player you prefer, such as VLC, mpv, or MPC-HC/BE, to play your files.
 
-<img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/3ae520c6-77af-4cc9-bb7a-9b75858520f1" />
+> **Status: 0.0.1-alpha**
+>
+> This is an early alpha release. The core workflow is usable, but features and internal architecture may change.
+
+---
+
+## Why LightMediaBrowser?
+
+When you have a large collection of video files, simply opening them in a file manager can become difficult.
+
+LightMediaBrowser provides a lightweight local library for your videos:
+
+* Scan multiple local folders
+* Browse videos with thumbnails
+* Search and filter your collection
+* Organize videos with tags
+* View video metadata
+* Mark videos as favorites
+* Track playback counts
+* Open videos with your preferred external player
+
+The application focuses on **managing your video collection**, rather than trying to replace your video player.
+
+---
 
 ## Features
 
-* **Local video library**
+### Local Video Library
 
-  * Import and manage multiple folders
-  * Scan local directories for video files
-  * Keep your original media files untouched
+* Add and manage multiple folders
+* Recursively scan directories for video files
+* Browse videos in a thumbnail-based library
+* Original video files are never modified by the application
 
-* **Asynchronous thumbnail generation**
+### Fast Browsing
 
-  * Generate video thumbnails in the background
-  * Use FFmpeg for thumbnail extraction
-  * Cache generated thumbnails for faster browsing
+* Asynchronous directory scanning
+* Asynchronous thumbnail generation
+* Thumbnail caching
+* Database-backed library
+* Designed to handle large local video collections
 
-* **Media metadata**
+### Search & Filtering
 
-  * Extract and display video information such as:
+* Search your video library
+* Filter videos
+* Find videos by filename and other stored information
+* Organize videos with tags
 
-    * Duration
-    * Resolution
-    * Video codec
-    * Other media metadata
+### Tags & Organization
 
-* **Search and filtering**
+* Create tag categories
+* Assign tags to videos
+* Use tags to organize large collections
+* Add notes to videos
+* Mark videos as favorites
 
-  * Search your media library
-  * Filter videos to quickly find what you are looking for
-  * Organize videos with tags
+### Video Metadata
 
-* **Local-first storage**
+LightMediaBrowser extracts and displays information such as:
 
-  * Library data is stored locally
-  * No cloud service or external media management service is required
-  * Original video files are never modified by the application
+* Duration
+* Resolution
+* Video codec
+* Other available media metadata
+
+### External Video Players
+
+LightMediaBrowser intentionally does **not** include a built-in video player.
+
+When you want to watch a video, the application opens it using the video player associated with your operating system.
+
+This keeps LightMediaBrowser focused on its main purpose:
+
+> **Organize your videos. Use the player you already like.**
+
+---
+
+## Local-first & Non-destructive
+
+LightMediaBrowser is designed to work entirely with your local media collection.
+
+Your original video files remain where they are.
+
+The application stores library information separately in a SQLite database.
+
+It does **not**:
+
+* Upload your videos to a cloud service
+* Require an online account
+* Modify your original video files
+* Convert your videos
+* Replace your existing video player
+
+Your media files remain yours.
+
+---
 
 ## Data Storage
 
@@ -55,6 +117,72 @@ On Linux, the default locations are:
 ```
 
 The application does not modify the original video files.
+
+### About deleted or moved files
+
+The library database is separate from the filesystem.
+
+If a video file is moved or deleted outside LightMediaBrowser, the database may retain information about the previous file until the library is updated.
+
+This behavior may be improved in a future release.
+
+---
+
+## Project Status
+
+**Current version: 0.0.1-alpha**
+
+LightMediaBrowser is currently in early development.
+
+The main video-management workflow is already implemented:
+
+```text
+Add folder
+    ↓
+Scan videos
+    ↓
+Generate thumbnails
+    ↓
+Browse library
+    ↓
+Search / Filter
+    ↓
+Tag / Organize
+    ↓
+Open with your preferred player
+```
+
+The 0.0.x releases are intended to validate the application's basic design and workflow.
+
+Expect:
+
+* Bugs
+* Missing features
+* UI changes
+* Database/schema changes
+* API and internal architecture changes
+
+Feedback and bug reports are welcome.
+
+---
+
+## What LightMediaBrowser is Not
+
+LightMediaBrowser intentionally does not try to be an all-in-one media application.
+
+It is not intended to be:
+
+* A video player
+* A video editor
+* A video converter
+* A media streaming server
+* A cloud media service
+
+Its primary purpose is simple:
+
+> **Manage and browse your local video collection quickly.**
+
+---
 
 ## Tech Stack
 
@@ -70,6 +198,8 @@ The application does not modify the original video files.
 * **Database:** SQLite 3
 * **Build system:** CMake 3.21+
 * **Media processing:** FFmpeg
+
+---
 
 ## Requirements
 
@@ -97,6 +227,8 @@ sudo apt install \
   pkg-config
 ```
 
+---
+
 ## Build
 
 Clone the repository:
@@ -123,6 +255,8 @@ Run:
 ```bash
 ./build/lightmediabrowser
 ```
+
+---
 
 ## Project Structure
 
@@ -153,23 +287,64 @@ lightmediabrowser/
 | `ui/`        | Qt Widgets user interface                     |
 | `resources/` | Application resources and database migrations |
 
+---
+
 ## Design Goals
 
-LightMediaBrowser is designed around a few simple ideas:
+LightMediaBrowser is built around a few simple ideas.
 
-* **Local-first** — your media library stays on your machine.
-* **Non-destructive** — original media files are not modified.
-* **Fast browsing** — thumbnails are generated asynchronously and cached.
-* **Simple architecture** — keep the application lightweight and easy to understand.
-* **Practical media management** — focus on browsing, searching, and organizing local video collections.
+### Local-first
 
-## Project Status
+Your media library stays on your machine.
 
-LightMediaBrowser is currently a personal project under active development.
+### Non-destructive
 
-The application is primarily designed for local use, but the project is also published on GitHub as an example of a small desktop application built with modern C++ and Qt.
+Original media files are not modified.
 
-Features and internal architecture may change as the project evolves.
+### Fast browsing
+
+Scanning and thumbnail generation are performed asynchronously, and thumbnails are cached for subsequent browsing.
+
+### Lightweight
+
+The application is focused on video management rather than trying to provide every possible media feature.
+
+### Use the player you like
+
+Video playback is delegated to an external player.
+
+This allows users to keep using the player and configuration they already prefer.
+
+---
+
+## Roadmap
+
+Possible future improvements include:
+
+* Better handling of moved and deleted files
+* Improved search performance for very large libraries
+* More flexible tag management
+* Library maintenance tools
+* Improved cross-platform packaging
+* Additional filtering and organization features
+
+The roadmap is intentionally flexible during the 0.0.x development stage.
+
+---
+
+## Contributing
+
+Bug reports, suggestions, and feedback are welcome.
+
+If you find a problem, please open an issue with:
+
+* What you were trying to do
+* What you expected to happen
+* What actually happened
+* Your operating system
+* Relevant application or console output
+
+---
 
 ## License
 
