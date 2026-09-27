@@ -1,91 +1,182 @@
 # LightMediaBrowser
 
-**LightMediaBrowser** は、Linux（およびQt 6サポート環境）向けの高速かつモダンなデスクトップ向け動画ライブラリ管理アプリケーションです。  
-動画ファイル自体を変更（破壊）せず、管理データやメタデータをSQLiteデータベースに一元保存することで、大量のローカル動画ファイルをスマートに整理・閲覧できます。
+A fast, lightweight, local-first media browser for managing and browsing large collections of local video files.
 
----
+LightMediaBrowser is built with **C++20 and Qt 6**. It keeps your original media files untouched and stores library information and metadata separately in a SQLite database.
 
-## 🌟 主な機能 (Features)
+## Demo
 
-- **フォルダのインポートと管理**: 動画が保存されているフォルダを複数登録・一括スキャンし、ライブラリへ自動的かつ効率的に取り込みます。
-- **非同期サムネイル生成**: 快適なブラウジングのため、QtConcurrentやFFmpegを活用してバックグラウンドでサムネイル画像を自動生成・キャッシュします。
-- **メタデータ管理 & 抽出**: 動画ファイルから解像度、コーデック、再生時間などの詳細情報を解析・表示します。
-- **検索とフィルタリング**: キーワード検索、タグツリーによる階層的な絞り込み、お気に入り・再生回数管理など充実したライブラリ整理機能。
-- **外部ファイル非依存**: 元の動画ファイルを直接書き換えないため、安全にコレクションを管理できます。
+> Demo videos coming soon.
 
-## 💾 保存データについて (Data Storage)
+<!--
+![Basic workflow](docs/demo_basic.gif)
+-->
 
-動画情報は SQLite データベースに、登録フォルダや画面設定はアプリ設定に保存されます。Linux では通常、データベースは `~/.local/share/LightMediaBrowser/database.sqlite`、設定は `~/.config/LightMediaBrowser/LightMediaBrowser.conf` にあります。
+## Features
 
-データベースが見つからない状態で起動すると、新しいライブラリとして扱い、以前の登録フォルダ一覧を空にします。画面設定はそのまま保持され、初回起動時の標準 `Videos` フォルダ登録も、登録フォルダ一覧を明示的に保持していない場合に限って行われます。
+* **Local video library**
 
----
+  * Import and manage multiple folders
+  * Scan local directories for video files
+  * Keep your original media files untouched
 
-## 🛠 技術スタック (Tech Stack)
+* **Asynchronous thumbnail generation**
 
-- **言語**: C++20
-- **フレームワーク**: Qt 6 (Core, Gui, Widgets, Sql, Concurrent, Network)
-- **データベース**: SQLite 3
-- **ビルドシステム**: CMake (3.21以上)
-- **マルチメディア処理** (任意): FFmpeg (libavformat, libavcodec, libavutil)
+  * Generate video thumbnails in the background
+  * Use FFmpeg for thumbnail extraction
+  * Cache generated thumbnails for faster browsing
 
----
+* **Media metadata**
 
-## 📦 必要要件 (Prerequisites)
+  * Extract and display video information such as:
 
-ビルドと実行には以下のライブラリおよびツールが必要です：
+    * Duration
+    * Resolution
+    * Video codec
+    * Other media metadata
 
-- **CMake** (3.21以上)
-- **C++20対応コンパイラ** (GCC / Clang など)
-- **Qt 6** 開発パッケージ (`Qt6Core`, `Qt6Gui`, `Qt6Widgets`, `Qt6Sql`, `Qt6Concurrent`, `Qt6Network`)
-- **SQLite 3** 開発パッケージ
-- **FFmpeg** 開発パッケージ (`libavformat`, `libavcodec`, `libavutil`) ※高度なメタデータ・サムネイル抽出用（推奨）
+* **Search and filtering**
 
-### Ubuntu / Debian の場合のインストール例
-```sh
-sudo apt update
-sudo apt install build-essential cmake qt6-base-dev libsqlite3-dev libavformat-dev libavcodec-dev libavutil-dev pkg-config
+  * Search your media library
+  * Filter videos to quickly find what you are looking for
+  * Organize videos with tags
+
+* **Local-first storage**
+
+  * Library data is stored locally
+  * No cloud service or external media management service is required
+  * Original video files are never modified by the application
+
+## Data Storage
+
+LightMediaBrowser stores library information in a SQLite database and application settings using Qt's standard settings system.
+
+On Linux, the default locations are:
+
+```text
+~/.local/share/LightMediaBrowser/database.sqlite
+~/.config/LightMediaBrowser/LightMediaBrowser.conf
 ```
 
----
+The application does not modify the original video files.
 
-## 🚀 ビルドと実行 (Build & Run)
+## Tech Stack
 
-ターミナルで以下のコマンドを実行します：
+* **Language:** C++20
+* **Framework:** Qt 6
 
-```sh
-# リポジトリクローン後、ビルドディレクトリを作成
+  * Qt Core
+  * Qt GUI
+  * Qt Widgets
+  * Qt SQL
+  * Qt Concurrent
+  * Qt Network
+* **Database:** SQLite 3
+* **Build system:** CMake 3.21+
+* **Media processing:** FFmpeg
+
+## Requirements
+
+To build and run LightMediaBrowser, you need:
+
+* CMake 3.21 or later
+* A C++20-compatible compiler such as GCC or Clang
+* Qt 6 development packages
+* SQLite 3 development packages
+* FFmpeg development libraries
+
+### Ubuntu / Debian
+
+```bash
+sudo apt update
+
+sudo apt install \
+  build-essential \
+  cmake \
+  qt6-base-dev \
+  libsqlite3-dev \
+  libavformat-dev \
+  libavcodec-dev \
+  libavutil-dev \
+  pkg-config
+```
+
+## Build
+
+Clone the repository:
+
+```bash
+git clone https://github.com/samejima-yasu-dev/lightmediabrowser.git
+cd lightmediabrowser
+```
+
+Configure the project:
+
+```bash
 cmake -S . -B build
+```
 
-# コンパイルの実行
+Build:
+
+```bash
 cmake --build build -j$(nproc)
+```
 
-# アプリケーションの起動
+Run:
+
+```bash
 ./build/lightmediabrowser
 ```
 
----
-
-## 📂 プロジェクト構成 (Project Structure)
+## Project Structure
 
 ```text
 lightmediabrowser/
-├── CMakeLists.txt          # CMakeビルド設定
-├── resources/              # アイコン・SQLマイグレーション等のリソース
-│   ├── migrations/         # SQLite用スキーママイグレーション
-│   └── resources.qrc       # Qtリソースファイル
-├── src/                    # ソースコード
-│   ├── database/           # SQLiteデータベース接続・操作
-│   ├── domain/             # ドメインモデル (Video等)
-│   ├── media/              # サムネイル生成・メディア処理
-│   ├── scanner/            # メディアファイルスキャン
-│   ├── ui/                 # Qt Widgets UI (MainWindow等)
-│   └── main.cpp            # エントリーポイント
+├── CMakeLists.txt
+├── resources/
+│   ├── migrations/
+│   └── resources.qrc
+├── src/
+│   ├── database/
+│   ├── domain/
+│   ├── media/
+│   ├── scanner/
+│   ├── ui/
+│   └── main.cpp
 └── README.md
 ```
 
----
+### Main Components
 
-## 📄 ライセンス (License)
+| Directory    | Description                                   |
+| ------------ | --------------------------------------------- |
+| `database/`  | SQLite database access and operations         |
+| `domain/`    | Domain models such as video data              |
+| `media/`     | Thumbnail generation and media processing     |
+| `scanner/`   | Local media file scanning                     |
+| `ui/`        | Qt Widgets user interface                     |
+| `resources/` | Application resources and database migrations |
 
-本プロジェクトのライセンスについては、プロジェクト内のファイルまたは作者へお問い合わせください。
+## Design Goals
+
+LightMediaBrowser is designed around a few simple ideas:
+
+* **Local-first** — your media library stays on your machine.
+* **Non-destructive** — original media files are not modified.
+* **Fast browsing** — thumbnails are generated asynchronously and cached.
+* **Simple architecture** — keep the application lightweight and easy to understand.
+* **Practical media management** — focus on browsing, searching, and organizing local video collections.
+
+## Project Status
+
+LightMediaBrowser is currently a personal project under active development.
+
+The application is primarily designed for local use, but the project is also published on GitHub as an example of a small desktop application built with modern C++ and Qt.
+
+Features and internal architecture may change as the project evolves.
+
+## License
+
+MIT License.
+
+See [LICENSE](LICENSE) for details.
