@@ -2,6 +2,8 @@
 
 **LightMediaBrowser is a fast, lightweight, local-first application for organizing and browsing large collections of local video files.**
 
+<img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/880624bd-9cc3-43e8-8ed3-412a1a702df6" />
+
 It is designed specifically for **video management** — scanning, browsing, searching, tagging, and organizing your collection.
 
 **It is not a video player.**
