@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=LightMediaBrowser
+Comment=Lightweight local media browser
+Exec=lightmediabrowser
+Icon=lightmediabrowser
+Terminal=false
+Categories=AudioVideo;Video;

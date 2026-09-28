@@ -1,3 +1,8 @@
 build/
 *.user
 *.swp
+
+# AppImage build artifacts
+AppDir/
+*.AppImage
+tools/

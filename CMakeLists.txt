@@ -37,3 +37,5 @@ if(TARGET PkgConfig::FFMPEG)
 endif()
 
 install(TARGETS lightmediabrowser RUNTIME DESTINATION bin)
+install(FILES resources/lightmediabrowser.desktop DESTINATION share/applications)
+install(FILES resources/lightmediabrowser.png DESTINATION share/icons/hicolor/256x256/apps)

@@ -1,0 +1,80 @@
+name: Build AppImage
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            qt6-base-dev \
+            qt6-tools-dev \
+            libsqlite3-dev \
+            pkg-config \
+            ffmpeg \
+            wget
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake --build build --parallel
+
+      - name: Install to AppDir
+        run: |
+          rm -rf AppDir
+          DESTDIR="$PWD/AppDir" cmake --install build --prefix /usr
+
+      - name: Download linuxdeploy
+        run: |
+          mkdir -p tools
+          wget -O tools/linuxdeploy-x86_64.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x tools/linuxdeploy-x86_64.AppImage
+
+      - name: Download linuxdeploy-plugin-qt
+        run: |
+          wget -O tools/linuxdeploy-plugin-qt-x86_64.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x tools/linuxdeploy-plugin-qt-x86_64.AppImage
+
+      - name: Deploy dependencies
+        run: |
+          ./tools/linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --desktop-file AppDir/usr/share/applications/lightmediabrowser.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/lightmediabrowser.png
+
+      - name: Deploy Qt
+        run: |
+          ./tools/linuxdeploy-plugin-qt-x86_64.AppImage \
+            --appdir AppDir
+
+      - name: Build AppImage
+        run: |
+          ./tools/linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --output appimage
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: LightMediaBrowser-AppImage
+          path: "*.AppImage"
