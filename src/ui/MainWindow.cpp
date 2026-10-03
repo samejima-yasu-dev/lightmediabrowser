@@ -71,16 +71,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     });
     connect(&m_thumbnailService, &ThumbnailService::generated, this, [this](const QString &videoPath, const QString &thumbnailPath) {
         m_thumbnailPaths.insert(videoPath, thumbnailPath);
-        for (int index = 0; index < m_videoList->count(); ++index) {
-            auto *item = m_videoList->item(index);
-            if (item->toolTip() == videoPath) {
-                item->setIcon(QIcon(thumbnailPath));
-                // アイコンの動的追加に伴うIconModeのレイアウト計算のズレを完全に防ぐため、
-                // アイテムのサイズヒントを再計算させ、リスト全体のスケジュール再レイアウトを行わせる
-                item->setSizeHint(item->sizeHint());
-                m_videoList->doItemsLayout();
-                m_videoList->viewport()->update();
-            }
+        QListWidgetItem *item = m_videoItemsByPath.value(videoPath, nullptr);
+        if (item) {
+            item->setIcon(QIcon(thumbnailPath));
+            m_videoList->viewport()->update(m_videoList->visualItemRect(item));
         }
     });
     connect(&m_thumbnailService, &ThumbnailService::failed, this, [this](const QString &, const QString &message) {
@@ -299,6 +293,7 @@ void MainWindow::scanFolder()
 void MainWindow::refreshVideos()
 {
     m_videoList->clear();
+    m_videoItemsByPath.clear();
     m_allVisibleVideos.clear();
     m_loadedVideoCount = 0;
     if (!m_databaseReady) return;
@@ -383,6 +378,7 @@ void MainWindow::loadMoreVideos()
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
         item->setData(Qt::UserRole, video.id);
         item->setToolTip(video.filePath);
+        m_videoItemsByPath.insert(video.filePath, item);
 
         // サムネイル画像の割り当て（キャッシュが存在すればアイコンとして設定）
         const QString thumbnailPath = m_thumbnailPaths.value(video.filePath, ThumbnailService::cachedPath(video.filePath));
@@ -704,6 +700,7 @@ void MainWindow::toggleFavorite()
     // もし「お気に入りフィルタ」が有効な状態で解除された場合は、リストからスムーズに除外する
     const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
     if (favoritesOnly && !newFavoriteState) {
+        m_videoItemsByPath.remove(video.filePath);
         delete m_videoList->takeItem(m_videoList->row(item));
         m_details->setText(QStringLiteral("No video selected."));
     } else {

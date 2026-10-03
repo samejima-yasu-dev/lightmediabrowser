@@ -63,6 +63,7 @@ private:
     QString m_selectedTag;
     QStringList m_folders;
     QHash<QString, QString> m_thumbnailPaths;
+    QHash<QString, QListWidgetItem *> m_videoItemsByPath;
     QList<VideoLightItem> m_allVisibleVideos;
     int m_loadedVideoCount = 0;
     const int m_pageSize = 100;

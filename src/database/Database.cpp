@@ -169,10 +169,9 @@ QList<VideoLightItem> Database::searchVideosLight(const QString &queryText, cons
         query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, is_favorite, play_count FROM videos ORDER BY file_name"));
     } else if (hasTag) {
         if (hasText) {
-            query.prepare(QStringLiteral("SELECT v.id, v.file_path, v.file_name, v.file_size, v.file_mtime, v.is_favorite, v.play_count FROM videos v JOIN video_tags vt ON vt.video_id = v.id JOIN tags t ON t.id = vt.tag_id WHERE t.name = ? AND (v.file_name LIKE ? OR v.file_path LIKE ? OR v.note LIKE ?) ORDER BY v.file_name"));
+            query.prepare(QStringLiteral("SELECT v.id, v.file_path, v.file_name, v.file_size, v.file_mtime, v.is_favorite, v.play_count FROM videos v JOIN video_tags vt ON vt.video_id = v.id JOIN tags t ON t.id = vt.tag_id WHERE t.name = ? AND (v.file_name LIKE ? OR v.note LIKE ?) ORDER BY v.file_name"));
             const QString pattern = QStringLiteral("%%1%").arg(queryText);
             query.addBindValue(tag);
-            query.addBindValue(pattern);
             query.addBindValue(pattern);
             query.addBindValue(pattern);
         } else {
@@ -180,13 +179,16 @@ QList<VideoLightItem> Database::searchVideosLight(const QString &queryText, cons
             query.addBindValue(tag);
         }
     } else {
-        query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, is_favorite, play_count FROM videos WHERE file_name LIKE ? OR file_path LIKE ? OR note LIKE ? ORDER BY file_name"));
+        query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, is_favorite, play_count FROM videos WHERE file_name LIKE ? OR note LIKE ? ORDER BY file_name"));
         const QString pattern = QStringLiteral("%%1%").arg(queryText);
         query.addBindValue(pattern);
         query.addBindValue(pattern);
-        query.addBindValue(pattern);
     }
-    if (!query.exec()) return result;
+    if (!query.exec()) {
+        qInfo() << "SEARCH SQL ERROR:" << query.lastError().text();
+        return result;
+    }
+
     while (query.next()) {
         VideoLightItem item;
         item.id = query.value(0).toLongLong();
@@ -211,10 +213,9 @@ QList<Video> Database::searchVideos(const QString &queryText, const QString &tag
         query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, duration_ms, width, height, video_codec, audio_codec, container_format, rating, note, is_favorite, play_count FROM videos ORDER BY file_name"));
     } else if (hasTag) {
         if (hasText) {
-            query.prepare(QStringLiteral("SELECT v.id, v.file_path, v.file_name, v.file_size, v.file_mtime, v.duration_ms, v.width, v.height, v.video_codec, v.audio_codec, v.container_format, v.rating, v.note, v.is_favorite, v.play_count FROM videos v JOIN video_tags vt ON vt.video_id = v.id JOIN tags t ON t.id = vt.tag_id WHERE t.name = ? AND (v.file_name LIKE ? OR v.file_path LIKE ? OR v.note LIKE ?) ORDER BY v.file_name"));
+            query.prepare(QStringLiteral("SELECT v.id, v.file_path, v.file_name, v.file_size, v.file_mtime, v.duration_ms, v.width, v.height, v.video_codec, v.audio_codec, v.container_format, v.rating, v.note, v.is_favorite, v.play_count FROM videos v JOIN video_tags vt ON vt.video_id = v.id JOIN tags t ON t.id = vt.tag_id WHERE t.name = ? AND (v.file_name LIKE ? OR v.note LIKE ?) ORDER BY v.file_name"));
             const QString pattern = QStringLiteral("%%1%").arg(queryText);
             query.addBindValue(tag);
-            query.addBindValue(pattern);
             query.addBindValue(pattern);
             query.addBindValue(pattern);
         } else {
@@ -222,9 +223,8 @@ QList<Video> Database::searchVideos(const QString &queryText, const QString &tag
             query.addBindValue(tag);
         }
     } else {
-        query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, duration_ms, width, height, video_codec, audio_codec, container_format, rating, note, is_favorite, play_count FROM videos WHERE file_name LIKE ? OR file_path LIKE ? OR note LIKE ? ORDER BY file_name"));
+        query.prepare(QStringLiteral("SELECT id, file_path, file_name, file_size, file_mtime, duration_ms, width, height, video_codec, audio_codec, container_format, rating, note, is_favorite, play_count FROM videos WHERE file_name LIKE ? OR note LIKE ? ORDER BY file_name"));
         const QString pattern = QStringLiteral("%%1%").arg(queryText);
-        query.addBindValue(pattern);
         query.addBindValue(pattern);
         query.addBindValue(pattern);
     }

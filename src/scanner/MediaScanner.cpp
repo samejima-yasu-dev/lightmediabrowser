@@ -47,7 +47,9 @@ void MediaScanner::scanFolders(const QStringList &folders)
                 video.fileMtime = info.lastModified().toSecsSinceEpoch();
                 videos.append(video);
                 const int count = videos.size();
-                QMetaObject::invokeMethod(scanner, [scanner, count] { emit scanner->progress(count); }, Qt::QueuedConnection);
+                if (count % 100 == 0) {
+                    QMetaObject::invokeMethod(scanner, [scanner, count] { emit scanner->progress(count); }, Qt::QueuedConnection);
+                }
             }
             qInfo() << "Media scan found" << videos.size() << "videos so far after folder" << folder;
         }
