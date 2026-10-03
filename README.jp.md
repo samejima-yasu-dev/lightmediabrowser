@@ -10,7 +10,7 @@
 
 動画の再生には、VLC、mpv、MPC-HC/BEなど、お好みの動画プレイヤーを使用してください。
 
-> **Status: 0.0.1-alpha**
+> **Status: 0.0.2-alpha**
 >
 > 初期アルファ版です。基本的なワークフローは利用できますが、今後機能や内部構造が変更される可能性があります。
 
@@ -133,7 +133,7 @@ LightMediaBrowserの外部で動画ファイルが移動または削除された
 
 ## Project Status
 
-**Current version: 0.0.1-alpha**
+**Current version: 0.0.2-alpha**
 
 LightMediaBrowserは現在、初期開発段階です。
 
