@@ -132,6 +132,18 @@ bool Database::upsertVideo(const Video &video, QString *error)
     return true;
 }
 
+bool Database::deleteVideo(const QString &filePath, QString *error)
+{
+    QSqlQuery query(m_database);
+    query.prepare(QStringLiteral("DELETE FROM videos WHERE file_path=?"));
+    query.addBindValue(filePath);
+    if (!query.exec()) {
+        if (error) *error = query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 bool Database::setFavorite(qint64 videoId, bool favorite, QString *error)
 {
     QSqlQuery query(m_database);

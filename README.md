@@ -124,9 +124,7 @@ The application does not modify the original video files.
 
 The library database is separate from the filesystem.
 
-If a video file is moved or deleted outside LightMediaBrowser, the database may retain information about the previous file until the library is updated.
-
-This behavior may be improved in a future release.
+When a registered folder exists during a scan, records and thumbnails for video files no longer found in that folder are deleted. If the registered folder itself is unavailable, its records and thumbnails are kept in case an external drive has only been temporarily disconnected.
 
 ---
 

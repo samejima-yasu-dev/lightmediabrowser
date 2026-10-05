@@ -45,6 +45,7 @@ private:
     void loadFolders();
     void saveFolders() const;
     void loadMoreVideos();
+    void removeMissingVideosFromAvailableFolders();
     QString trText(const QString &key) const;
 
     Database m_database;

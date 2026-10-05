@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QFileDialog>
+#include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHeaderView>
@@ -730,12 +731,63 @@ void MainWindow::playVideo(QListWidgetItem *item)
 
 void MainWindow::showScanResult(int count)
 {
+    removeMissingVideosFromAvailableFolders();
     refreshVideos();
     refreshTags();
     if (count == 0) {
         statusBar()->showMessage(QStringLiteral("Scan complete: no supported video files found"));
     } else {
         statusBar()->showMessage(QStringLiteral("Scan complete: %1 videos discovered").arg(count));
+    }
+}
+
+void MainWindow::removeMissingVideosFromAvailableFolders()
+{
+    struct RegisteredFolder
+    {
+        QString path;
+        bool available;
+    };
+
+    QList<RegisteredFolder> registeredFolders;
+    registeredFolders.reserve(m_folders.size());
+    for (const QString &folder : m_folders) {
+        const QString path = QDir::cleanPath(QFileInfo(folder).absoluteFilePath());
+        const QDir directory(path);
+        registeredFolders.append({path, directory.exists() && directory.isReadable()});
+    }
+
+    const QList<VideoLightItem> videos = m_database.searchVideosLight();
+    for (const VideoLightItem &video : videos) {
+        const QString filePath = QDir::cleanPath(QFileInfo(video.filePath).absoluteFilePath());
+        int matchingFolder = -1;
+        qsizetype longestMatch = -1;
+        for (int i = 0; i < registeredFolders.size(); ++i) {
+            const RegisteredFolder &folder = registeredFolders.at(i);
+            const QString relativePath = QDir::fromNativeSeparators(QDir(folder.path).relativeFilePath(filePath));
+            if (relativePath == QStringLiteral("..") || relativePath.startsWith(QStringLiteral("../"))) continue;
+            if (folder.path.size() > longestMatch) {
+                matchingFolder = i;
+                longestMatch = folder.path.size();
+            }
+        }
+
+        if (matchingFolder < 0 || !registeredFolders.at(matchingFolder).available ||
+            QFileInfo(filePath).isFile()) {
+            continue;
+        }
+
+        QString error;
+        if (!m_database.deleteVideo(video.filePath, &error)) {
+            qWarning() << "Could not remove missing video record:" << video.filePath << error;
+            continue;
+        }
+
+        const QString thumbnailPath = ThumbnailService::cachedPath(video.filePath);
+        if (QFileInfo::exists(thumbnailPath) && !QFile::remove(thumbnailPath)) {
+            qWarning() << "Could not remove thumbnail for missing video:" << thumbnailPath;
+        }
+        m_thumbnailPaths.remove(video.filePath);
     }
 }
 

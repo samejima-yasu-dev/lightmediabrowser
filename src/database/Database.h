@@ -141,6 +141,14 @@ public:
     bool upsertVideo(const Video &video, QString *error = nullptr);
 
     /**
+     * @brief 指定したファイルパスの動画情報を削除する
+     * @param filePath 動画のファイルパス
+     * @param error エラーメッセージ格納用ポインタ
+     * @return 成否
+     */
+    bool deleteVideo(const QString &filePath, QString *error = nullptr);
+
+    /**
      * @brief 動画のお気に入り状態を更新する
      * @param videoId 動画ID
      * @param favorite お気に入りフラグ
