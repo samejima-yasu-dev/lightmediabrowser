@@ -236,6 +236,11 @@ void MainWindow::buildUi()
     connect(m_videoList, &QListWidget::itemClicked, this, &MainWindow::showDetails);
     connect(m_videoList, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *current, QListWidgetItem *) {
         showDetails(current);
+        const int itemsPerRow = qMax(1, m_videoList->viewport()->width() / m_videoList->gridSize().width());
+        if (current && m_loadedVideoCount > 0
+            && m_videoList->row(current) >= m_loadedVideoCount - itemsPerRow) {
+            loadMoreVideos();
+        }
     });
     connect(m_videoList, &QListWidget::itemActivated, this, &MainWindow::playVideo);
     connect(m_videoList, &QListWidget::customContextMenuRequested, this, &MainWindow::showVideoContextMenu);
