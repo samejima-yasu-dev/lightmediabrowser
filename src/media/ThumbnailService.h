@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <QMutex>
+#include <QSet>
 #include <QThreadPool>
 #include <QString>
 
@@ -19,4 +21,6 @@ signals:
 
 private:
     QThreadPool m_pool;
+    QMutex m_mutex;
+    QSet<QString> m_generating;
 };

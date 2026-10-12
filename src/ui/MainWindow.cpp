@@ -77,10 +77,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         QListWidgetItem *item = m_videoItemsByPath.value(videoPath, nullptr);
         if (item) {
             item->setIcon(QIcon(thumbnailPath));
-            m_videoList->viewport()->update(m_videoList->visualItemRect(item));
         }
     });
-    connect(&m_thumbnailService, &ThumbnailService::failed, this, [this](const QString &, const QString &message) {
+    connect(&m_thumbnailService, &ThumbnailService::failed, this, [this](const QString &videoPath, const QString &message) {
+        QListWidgetItem *item = m_videoItemsByPath.value(videoPath, nullptr);
+        if (item) item->setIcon(QIcon());
         statusBar()->showMessage(message.isEmpty() ? QStringLiteral("Thumbnail generation failed") : QStringLiteral("Thumbnail failed: %1").arg(message));
     });
     if (!m_currentFolder.isEmpty()) QTimer::singleShot(0, this, &MainWindow::scanFolder);
