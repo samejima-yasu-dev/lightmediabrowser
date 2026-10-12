@@ -425,7 +425,7 @@ void MainWindow::showTagContextMenu(const QPoint &position)
         });
     } else {
         // 小項目（タグ）を右クリック -> タグ削除
-        const qint64 tagId = item->data(Qt::UserRole).toLongLong();
+        const qint64 tagId = item->data(0, Qt::UserRole).toLongLong();
         const QString tagName = item->text(0);
         menu.addAction(QStringLiteral("🗑️ Delete Tag \"%1\"").arg(tagName), this, [this, tagId, tagName] {
             if (QMessageBox::question(this, QStringLiteral("Delete Tag"), QStringLiteral("Are you sure you want to delete tag '%1'?").arg(tagName)) == QMessageBox::Yes) {
