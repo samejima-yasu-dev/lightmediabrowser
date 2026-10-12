@@ -32,8 +32,10 @@
 #include <QDialogButtonBox>
 #include <QPalette>
 #include <QProcess>
-#include <QRegularExpression>
-#include <algorithm>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -300,100 +302,62 @@ void MainWindow::refreshVideos()
 {
     m_videoList->clear();
     m_videoItemsByPath.clear();
-    m_allVisibleVideos.clear();
     m_loadedVideoCount = 0;
+    m_nextVideoOffset = 0;
+    m_totalVideoCount = 0;
+    m_pageLoadScheduled = false;
+    ++m_listingGeneration;
     if (!m_databaseReady) return;
 
-    // データベースから軽量なビデオ一覧を取得
-    const QList<VideoLightItem> videos = m_database.searchVideosLight(m_search ? m_search->text() : QString(), m_selectedTag);
-    QList<VideoLightItem> visibleVideos;
     const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
-    
-    // 外部HDDなどの親フォルダ存在チェックのキャッシュ（高速化のため一度確認したパスを記憶）
-    QHash<QString, bool> dirExistsCache;
-
-    for (const VideoLightItem &video : videos) {
-        // お気に入りフィルタおよび最小再生回数フィルタの適用
-        if ((!favoritesOnly || video.favorite) && (!m_minPlayCount || video.playCount >= m_minPlayCount->value())) {
-            const QFileInfo fileInfo(video.filePath);
-            const QString parentPath = fileInfo.absolutePath();
-            bool isAccessible = true;
-
-            // 1. 親フォルダ（ドライブ）のアクセシビリティ確認（キャッシュを利用）
-            if (dirExistsCache.contains(parentPath)) {
-                isAccessible = dirExistsCache.value(parentPath);
-            } else {
-                QDir dir(parentPath);
-                isAccessible = dir.exists();
-                dirExistsCache.insert(parentPath, isAccessible);
-            }
-            
-            // 親ドライブ・フォルダ自体が存在しない場合はスキップ
-            if (!isAccessible) continue;
-
-            // 2. ★追加: 個別ファイルが実際に存在するか確認
-            if (!fileInfo.exists()) continue;
-
-            visibleVideos.append(video);
-        }
-    }
-
-    // 重複ファイル抽出フィルタ
     const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
-    if (duplicatesOnly) {
-        QHash<QString, int> nameCounts;
-        for (const VideoLightItem &video : visibleVideos) {
-            nameCounts[video.fileName.trimmed().toCaseFolded()]++;
-        }
-        QList<VideoLightItem> filteredDuplicates;
-        for (const VideoLightItem &video : visibleVideos) {
-            if (nameCounts.value(video.fileName.trimmed().toCaseFolded()) > 1) {
-                filteredDuplicates.append(video);
-            }
-        }
-        visibleVideos = filteredDuplicates;
-    }
-
-    // ソート条件に基づく並び替え
-    const QString sortKey = m_sortSelector ? m_sortSelector->currentData().toString() : QStringLiteral("name");
-    std::sort(visibleVideos.begin(), visibleVideos.end(), [&sortKey](const VideoLightItem &left, const VideoLightItem &right) {
-        if (sortKey == QStringLiteral("newest")) return left.fileMtime > right.fileMtime;
-        if (sortKey == QStringLiteral("size")) return left.fileSize > right.fileSize;
-        if (sortKey == QStringLiteral("plays")) return left.playCount > right.playCount;
-        return left.fileName.toCaseFolded() < right.fileName.toCaseFolded();
-    });
-
-    // フィルタ・ソート済みの全件を保持し、初期表示として最初の1ページ分をロード
-    m_allVisibleVideos = visibleVideos;
+    const QString query = m_search ? m_search->text() : QString();
+    const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
+    m_totalVideoCount = m_database.countVideosLight(query, m_selectedTagId, favoritesOnly,
+                                                     minPlayCount, duplicatesOnly);
     loadMoreVideos();
 }
 
 void MainWindow::loadMoreVideos()
 {
-    // 全件表示し終えている場合は何もしない
-    if (m_loadedVideoCount >= m_allVisibleVideos.size()) return;
+    if (!m_databaseReady || m_nextVideoOffset >= m_totalVideoCount) return;
 
-    // 今回追加でロードする終了インデックスを計算（1ページあたり m_pageSize 件ずつ追加）
-    const int targetCount = qMin(m_loadedVideoCount + m_pageSize, m_allVisibleVideos.size());
-    for (int i = m_loadedVideoCount; i < targetCount; ++i) {
-        const VideoLightItem &video = m_allVisibleVideos.at(i);
+    const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
+    const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
+    const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
+    const QString query = m_search ? m_search->text() : QString();
+    const QString sortKey = m_sortSelector ? m_sortSelector->currentData().toString() : QStringLiteral("name");
+    const int targetCount = m_loadedVideoCount + m_pageSize;
+    const QList<VideoLightItem> page = m_database.searchVideosLight(
+        query, m_selectedTagId, favoritesOnly, minPlayCount, duplicatesOnly,
+        sortKey, m_pageSize, m_nextVideoOffset);
+    m_nextVideoOffset += page.size();
+    for (const VideoLightItem &video : page) {
+        const QFileInfo fileInfo(video.filePath);
+        if (!fileInfo.exists() || !QDir(fileInfo.absolutePath()).exists()) continue;
+
         const QString marker = video.favorite ? QStringLiteral("★ ") : QString();
-        
-        // リストアイテムを生成してウィジェットに追加
-        auto *item = new QListWidgetItem(marker + video.fileName + QStringLiteral("\nPlays: ") + QString::number(video.playCount), m_videoList);
+        auto *item = new QListWidgetItem(
+            marker + video.fileName + QStringLiteral("\nPlays: ") + QString::number(video.playCount), m_videoList);
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
         item->setData(Qt::UserRole, video.id);
         item->setToolTip(video.filePath);
         m_videoItemsByPath.insert(video.filePath, item);
-
-        // サムネイル画像の割り当て（キャッシュが存在すればアイコンとして設定）
         const QString thumbnailPath = m_thumbnailPaths.value(video.filePath, ThumbnailService::cachedPath(video.filePath));
         if (QFileInfo::exists(thumbnailPath)) item->setIcon(QIcon(thumbnailPath));
+        ++m_loadedVideoCount;
     }
-    
-    m_loadedVideoCount = targetCount;
-    // ステータスバーに全ヒット件数と現在の表示件数を反映
-    statusBar()->showMessage(QStringLiteral("%1 / %2 videos (displayed %3)").arg(m_allVisibleVideos.size()).arg(m_allVisibleVideos.size()).arg(m_loadedVideoCount));
+    if (m_loadedVideoCount < targetCount && m_nextVideoOffset < m_totalVideoCount &&
+        !page.isEmpty() && !m_pageLoadScheduled) {
+        m_pageLoadScheduled = true;
+        const quint64 generation = m_listingGeneration;
+        QTimer::singleShot(0, this, [this, generation] {
+            if (generation != m_listingGeneration) return;
+            m_pageLoadScheduled = false;
+            loadMoreVideos();
+        });
+    }
+    statusBar()->showMessage(QStringLiteral("%1 / %2 videos displayed").arg(m_loadedVideoCount).arg(m_totalVideoCount));
 }
 
 void MainWindow::showVideoContextMenu(const QPoint &position)
@@ -450,7 +414,7 @@ void MainWindow::showTagContextMenu(const QPoint &position)
                 if (!m_database.deleteCategory(catName, &error)) {
                     QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not delete category: %1").arg(error));
                 } else {
-                    m_selectedTag.clear();
+                    m_selectedTagId = 0;
                     refreshTags();
                     refreshVideos();
                 }
@@ -458,14 +422,15 @@ void MainWindow::showTagContextMenu(const QPoint &position)
         });
     } else {
         // 小項目（タグ）を右クリック -> タグ削除
+        const qint64 tagId = item->data(Qt::UserRole).toLongLong();
         const QString tagName = item->text(0);
-        menu.addAction(QStringLiteral("🗑️ Delete Tag \"%1\"").arg(tagName), this, [this, tagName] {
+        menu.addAction(QStringLiteral("🗑️ Delete Tag \"%1\"").arg(tagName), this, [this, tagId, tagName] {
             if (QMessageBox::question(this, QStringLiteral("Delete Tag"), QStringLiteral("Are you sure you want to delete tag '%1'?").arg(tagName)) == QMessageBox::Yes) {
                 QString error;
-                if (!m_database.deleteTag(tagName, &error)) {
+                if (!m_database.deleteTag(tagId, &error)) {
                     QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not delete tag: %1").arg(error));
                 } else {
-                    if (m_selectedTag == tagName) m_selectedTag.clear();
+                    if (m_selectedTagId == tagId) m_selectedTagId = 0;
                     refreshTags();
                     refreshVideos();
                 }
@@ -499,17 +464,18 @@ void MainWindow::assignTagsToVideo()
     auto *scrollLayout = new QVBoxLayout(scrollWidget);
 
     const QList<TagInfo> allTags = m_database.tagsWithCategories();
-    const QList<QString> assignedTags = m_database.tagsForVideo(videoId);
-    QMap<QString, QCheckBox *> checkBoxMap;
+    const QList<qint64> assignedTags = m_database.tagIdsForVideo(videoId);
+    QMap<qint64, QCheckBox *> checkBoxMap;
 
     for (const TagInfo &tag : allTags) {
+        if (tag.id <= 0) continue;
         auto *chk = new QCheckBox(QStringLiteral("[%1] %2").arg(tag.category, tag.name), scrollWidget);
-        chk->setProperty("tagName", tag.name);
-        if (assignedTags.contains(tag.name)) {
+        chk->setProperty("tagId", tag.id);
+        if (assignedTags.contains(tag.id)) {
             chk->setChecked(true);
         }
         scrollLayout->addWidget(chk);
-        checkBoxMap.insert(tag.name, chk);
+        checkBoxMap.insert(tag.id, chk);
     }
     scrollLayout->addStretch();
     scrollWidget->setLayout(scrollLayout);
@@ -522,7 +488,7 @@ void MainWindow::assignTagsToVideo()
     layout->addWidget(buttonBox);
 
     if (dialog.exec() == QDialog::Accepted) {
-        QStringList newAssignedTags;
+        QList<qint64> newAssignedTags;
         for (auto it = checkBoxMap.cbegin(); it != checkBoxMap.cend(); ++it) {
             if (it.value()->isChecked()) {
                 newAssignedTags.append(it.key());
@@ -542,11 +508,7 @@ void MainWindow::assignTagsToVideo()
 void MainWindow::selectTag(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column)
-    if (item->parent() == nullptr) {
-        m_selectedTag.clear();
-    } else {
-        m_selectedTag = item->text(0);
-    }
+    m_selectedTagId = item->data(0, Qt::UserRole).toLongLong();
     refreshVideos();
 }
 
@@ -565,7 +527,8 @@ void MainWindow::refreshTags()
 
         // タグ名が存在する場合のみ、子要素（タグ）として追加
         if (!tag.name.isEmpty()) {
-            new QTreeWidgetItem(categories.value(tag.category), {tag.name});
+            auto *item = new QTreeWidgetItem(categories.value(tag.category), {tag.name});
+            item->setData(0, Qt::UserRole, tag.id);
         }
     }
 
@@ -581,10 +544,8 @@ void MainWindow::showDetails(QListWidgetItem *item)
     Video video = m_database.findById(id);
     if (video.id != id) return;
 
-    // もしDB上のメタデータ（解像度や再生時間など）が未取得の場合、FFmpegまたはffprobe等を使って軽量にオンデマンド取得
+    // 詳細を初めて開いたときにffprobeの結果を取得してDBに保存する
     if (video.durationMs <= 0 && !video.filePath.isEmpty() && QFileInfo::exists(video.filePath)) {
-#ifdef LIGHTMEDIABROWSER_HAS_FFMPEG
-        // FFmpegライブラリが利用可能な場合、あるいはffprobeコマンドでサクッと取得
         QProcess probe;
         probe.start(QStringLiteral("ffprobe"), {
             QStringLiteral("-v"), QStringLiteral("quiet"),
@@ -592,35 +553,50 @@ void MainWindow::showDetails(QListWidgetItem *item)
             QStringLiteral("-show_format"), QStringLiteral("-show_streams"),
             video.filePath
         });
-        if (probe.waitForFinished(2000) && probe.exitCode() == 0) {
-            // 簡易的にffprobeの出力から duration, width, height をパースする
-            const QByteArray output = probe.readAllStandardOutput();
-            // 例: "duration": "123.456" など
-            QRegularExpression durRx("\"duration\":\\s*\"([0-9.]+)\"");
-            auto match = durRx.match(QString::fromUtf8(output));
-            if (match.hasMatch()) {
-                video.durationMs = static_cast<qint64>(match.captured(1).toDouble() * 1000.0);
+        if (!probe.waitForStarted(1000)) {
+            statusBar()->showMessage(QStringLiteral("Could not start ffprobe: %1").arg(probe.errorString()));
+        } else if (!probe.waitForFinished(5000)) {
+            probe.kill();
+            probe.waitForFinished();
+            statusBar()->showMessage(QStringLiteral("ffprobe timed out for: %1").arg(video.fileName));
+        } else if (probe.exitStatus() != QProcess::NormalExit || probe.exitCode() != 0) {
+            const QString message = QString::fromLocal8Bit(probe.readAllStandardError()).trimmed();
+            statusBar()->showMessage(message.isEmpty()
+                ? QStringLiteral("ffprobe failed for: %1").arg(video.fileName)
+                : QStringLiteral("ffprobe failed: %1").arg(message));
+        } else {
+            QJsonParseError parseError;
+            const QJsonDocument document = QJsonDocument::fromJson(probe.readAllStandardOutput(), &parseError);
+            if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+                statusBar()->showMessage(QStringLiteral("Could not parse ffprobe output: %1").arg(parseError.errorString()));
+            } else {
+                const QJsonObject root = document.object();
+                const QJsonObject format = root.value(QStringLiteral("format")).toObject();
+                const double duration = format.value(QStringLiteral("duration")).toString().toDouble();
+                if (duration > 0) video.durationMs = static_cast<qint64>(duration * 1000.0);
+                video.containerFormat = format.value(QStringLiteral("format_name")).toString()
+                                            .section(QLatin1Char(','), 0, 0).toUpper();
+                for (const QJsonValue &streamValue : root.value(QStringLiteral("streams")).toArray()) {
+                    const QJsonObject stream = streamValue.toObject();
+                    const QString codec = stream.value(QStringLiteral("codec_name")).toString().toUpper();
+                    if (stream.value(QStringLiteral("codec_type")).toString() == QStringLiteral("video") &&
+                        video.videoCodec.isEmpty()) {
+                        video.videoCodec = codec;
+                        video.width = stream.value(QStringLiteral("width")).toInt();
+                        video.height = stream.value(QStringLiteral("height")).toInt();
+                    } else if (stream.value(QStringLiteral("codec_type")).toString() == QStringLiteral("audio") &&
+                               video.audioCodec.isEmpty()) {
+                        video.audioCodec = codec;
+                    }
+                }
+
+                QString error;
+                if (!m_database.updateVideoMetadata(video, &error)) {
+                    qWarning() << "Could not cache video metadata:" << error;
+                    statusBar()->showMessage(QStringLiteral("Could not save video metadata: %1").arg(error));
+                }
             }
-            QRegularExpression wRx("\"width\":\\s*([0-9]+)");
-            match = wRx.match(QString::fromUtf8(output));
-            if (match.hasMatch()) video.width = match.captured(1).toInt();
-            QRegularExpression hRx("\"height\":\\s*([0-9]+)");
-            match = hRx.match(QString::fromUtf8(output));
-            if (match.hasMatch()) video.height = match.captured(1).toInt();
-
-            QRegularExpression vCodecRx("\"codec_name\":\\s*\"([^\"]+)\"");
-            match = vCodecRx.match(QString::fromUtf8(output));
-            if (match.hasMatch()) video.videoCodec = match.captured(1).toUpper();
-
-            QRegularExpression formatRx("\"format_name\":\\s*\"([^\"]+)\"");
-            match = formatRx.match(QString::fromUtf8(output));
-            if (match.hasMatch()) video.containerFormat = match.captured(1).section(QLatin1Char(','), 0, 0).toUpper();
-
-            // 取得したメタデータをDBにキャッシュとして保存し、次回から高速化
-            QString err;
-            m_database.upsertVideo(video, &err);
         }
-#endif
     }
 
     const QString tags = m_database.tagsForVideo(id).join(QStringLiteral(", "));
@@ -672,9 +648,9 @@ void MainWindow::showDetails(QListWidgetItem *item)
         .arg(video.fileName.toHtmlEscaped(), video.filePath.toHtmlEscaped())
         .arg(durationStr)
         .arg(resolutionStr)
-        .arg(containerStr)
-        .arg(videoCodecStr)
-        .arg(audioCodecStr)
+        .arg(containerStr.toHtmlEscaped())
+        .arg(videoCodecStr.toHtmlEscaped())
+        .arg(audioCodecStr.toHtmlEscaped())
         .arg(QString::number(sizeGb, 'f', 2))
         .arg(QDateTime::fromSecsSinceEpoch(video.fileMtime).toString(QStringLiteral("yyyy/MM/dd hh:mm")))
         .arg(favoriteStr)
@@ -694,28 +670,7 @@ void MainWindow::toggleFavorite()
         statusBar()->showMessage(QStringLiteral("Favorite update failed: %1").arg(error));
         return;
     }
-    
-    // お気に入り状態の変更を現在の表示用リストデータ(m_allVisibleVideos)にも即時反映
-    for (VideoLightItem &lightItem : m_allVisibleVideos) {
-        if (lightItem.id == id) {
-            lightItem.favorite = newFavoriteState;
-            break;
-        }
-    }
-
-    // もし「お気に入りフィルタ」が有効な状態で解除された場合は、リストからスムーズに除外する
-    const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
-    if (favoritesOnly && !newFavoriteState) {
-        m_videoItemsByPath.remove(video.filePath);
-        delete m_videoList->takeItem(m_videoList->row(item));
-        m_details->setText(QStringLiteral("No video selected."));
-    } else {
-        // リストアイテムの表示テキスト（★マーク）をリアルタイム更新
-        const QString marker = newFavoriteState ? QStringLiteral("★ ") : QString();
-        item->setText(marker + video.fileName + QStringLiteral("\nPlays: ") + QString::number(video.playCount));
-        showDetails(item);
-    }
-
+    refreshVideos();
     statusBar()->showMessage(newFavoriteState ? QStringLiteral("Added to favorites (★)") : QStringLiteral("Removed from favorites"));
 }
 
@@ -734,11 +689,20 @@ void MainWindow::playVideo(QListWidgetItem *item)
     }
 }
 
-void MainWindow::showScanResult(int count)
+void MainWindow::showScanResult(int count, bool complete, const QStringList &errors)
 {
-    removeMissingVideosFromAvailableFolders();
+    if (complete) {
+        removeMissingVideosFromAvailableFolders();
+    } else {
+        for (const QString &message : errors) qWarning() << "Media scan incomplete:" << message;
+    }
     refreshVideos();
     refreshTags();
+    if (!complete) {
+        statusBar()->showMessage(QStringLiteral("Scan incomplete; missing-file cleanup was skipped. %1")
+                                     .arg(errors.join(QStringLiteral("; "))));
+        return;
+    }
     if (count == 0) {
         statusBar()->showMessage(QStringLiteral("Scan complete: no supported video files found"));
     } else {

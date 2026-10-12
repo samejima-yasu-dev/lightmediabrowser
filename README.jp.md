@@ -125,7 +125,7 @@ Linuxでは、デフォルトで以下の場所に保存されます。
 
 ライブラリデータベースは、ファイルシステムとは別に管理されています。
 
-スキャン時に登録フォルダーが存在する場合、そのフォルダー内で見つからない動画のレコードとサムネイルは削除されます。登録フォルダー自体が存在しない場合は、外付けドライブが一時的に切断されている可能性があるため、レコードとサムネイルを保持します。
+利用可能な登録フォルダーを完全にスキャンできた場合に限り、そのフォルダー内で見つからない動画のレコードとサムネイルを削除します。スキャンの一部にアクセスできない場合は、不完全な結果による誤削除を避けるため、削除処理を行いません。登録フォルダー自体が利用できない場合も、外付けドライブが一時的に切断されている可能性があるため、レコードとサムネイルを保持します。
 
 ---
 
@@ -198,7 +198,7 @@ LightMediaBrowserは、すべてのメディア機能を1つにまとめたオ�
   * Qt Network
 * **データベース:** SQLite 3
 * **ビルドシステム:** CMake 3.21+
-* **メディア処理:** FFmpeg
+* **メディア処理:** FFmpegコマンドラインツール（`ffmpeg` / `ffprobe`）
 
 ---
 
@@ -210,7 +210,7 @@ LightMediaBrowserをビルド・実行するには、以下が必要です。
 * GCCやClangなどのC++20対応コンパイラ
 * Qt 6開発パッケージ
 * SQLite 3開発パッケージ
-* FFmpeg開発ライブラリ
+* 実行時に `ffmpeg` と `ffprobe` コマンド
 
 ### Ubuntu / Debian
 
@@ -222,10 +222,7 @@ sudo apt install \
   cmake \
   qt6-base-dev \
   libsqlite3-dev \
-  libavformat-dev \
-  libavcodec-dev \
-  libavutil-dev \
-  pkg-config
+  ffmpeg
 ```
 
 ---
@@ -256,6 +253,8 @@ cmake --build build -j$(nproc)
 ```bash
 ./build/lightmediabrowser
 ```
+
+サムネイル生成と動画情報の取得には、実行環境の `ffmpeg` / `ffprobe` が必要です。
 
 ---
 
@@ -339,4 +338,16 @@ LightMediaBrowserは、いくつかのシンプルな考え方を中心に設計
 
 問題を見つけた場合は、Issueを作成する際に以下の情報を含めてください。
 
-* 何をしようとしていたか
+* 試した操作
+* 期待した結果
+* 実際に起きたこと
+* OS
+* 関連するアプリケーションまたはコンソール出力
+
+---
+
+## License
+
+アプリケーション本体はMITライセンスです。詳細は[LICENSE](LICENSE)を参照してください。
+
+Qt、SQLite、FFmpegはそれぞれ個別のライセンス条件に従います。リリースAppImageには、同梱したQt・SQLite・FFmpegパッケージから利用可能な著作権・ライセンス文書を `usr/share/doc/lightmediabrowser/third-party/` に収録します。再配布時には同梱物と各文書の条件を確認してください。対象範囲は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。

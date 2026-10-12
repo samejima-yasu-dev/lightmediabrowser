@@ -26,7 +26,6 @@ jobs:
             qt6-base-dev \
             qt6-tools-dev \
             libsqlite3-dev \
-            pkg-config \
             ffmpeg \
             wget
 
@@ -63,12 +62,32 @@ jobs:
           ./tools/linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             --desktop-file AppDir/usr/share/applications/lightmediabrowser.desktop \
-            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/lightmediabrowser.png
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/lightmediabrowser.png \
+            --executable /usr/bin/ffmpeg \
+            --executable /usr/bin/ffprobe
 
       - name: Deploy Qt
         run: |
           ./tools/linuxdeploy-plugin-qt-x86_64.AppImage \
             --appdir AppDir
+
+      - name: Include dependency license texts
+        run: |
+          license_dir="AppDir/usr/share/doc/lightmediabrowser/third-party"
+          mkdir -p "$license_dir"
+          dpkg-query -W -f='${binary:Package}\n' \
+            | grep -E '^(ffmpeg|libav|libsw|libpostproc|libqt6|qt6-|libsqlite3)' \
+            | while IFS= read -r package; do
+                package_name="${package%%:*}"
+                source="/usr/share/doc/$package_name/copyright"
+                if [ -f "$source" ]; then
+                  cp "$source" "$license_dir/$package_name.copyright"
+                fi
+              done
+          test -s AppDir/usr/share/doc/lightmediabrowser/LICENSE
+          test -s AppDir/usr/share/doc/lightmediabrowser/THIRD_PARTY_NOTICES.md
+          test -x AppDir/usr/bin/ffmpeg
+          test -x AppDir/usr/bin/ffprobe
 
       - name: Build AppImage
         run: |

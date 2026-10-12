@@ -18,7 +18,3 @@ CREATE TABLE IF NOT EXISTS video_tags (
     tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
     PRIMARY KEY(video_id, tag_id)
 );
-
--- 初期カテゴリとタグのサンプル
-INSERT OR IGNORE INTO categories (id, name, created_at) VALUES (1, 'Category', strftime('%s', 'now'));
-INSERT OR IGNORE INTO tags (category_id, name, created_at) VALUES (1, 'SampleTag', strftime('%s', 'now'));

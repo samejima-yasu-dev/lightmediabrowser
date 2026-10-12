@@ -37,7 +37,7 @@ private slots:
     void showTagContextMenu(const QPoint &position);
     void assignTagsToVideo();
     void selectTag(QTreeWidgetItem *item, int column);
-    void showScanResult(int count);
+    void showScanResult(int count, bool complete, const QStringList &errors);
 
 private:
     void buildUi();
@@ -61,12 +61,15 @@ private:
     QListWidget *m_videoList = nullptr;
     QLabel *m_details = nullptr;
     QString m_currentFolder;
-    QString m_selectedTag;
+    qint64 m_selectedTagId = 0;
     QStringList m_folders;
     QHash<QString, QString> m_thumbnailPaths;
     QHash<QString, QListWidgetItem *> m_videoItemsByPath;
-    QList<VideoLightItem> m_allVisibleVideos;
     int m_loadedVideoCount = 0;
+    int m_nextVideoOffset = 0;
+    int m_totalVideoCount = 0;
+    bool m_pageLoadScheduled = false;
+    quint64 m_listingGeneration = 0;
     const int m_pageSize = 100;
     bool m_databaseReady = false;
 };

@@ -13,6 +13,7 @@ struct MetadataResult;
  */
 struct TagInfo
 {
+    qint64 id = 0;         ///< タグID（カテゴリ行では0）
     QString name;       ///< タグの表示名
     QString category;   ///< 大項目（カテゴリ）名
 };
@@ -51,18 +52,24 @@ public:
     /**
      * @brief キーワードやタグに一致する動画の詳細情報リストを検索する
         * @param query 検索キーワード（ファイル名、メモ等）
-     * @param tag 絞り込み対象のタグ名
+     * @param tagId 絞り込み対象のタグID（0はタグ指定なし）
      * @return 条件に一致するVideoオブジェクトのリスト
      */
-    QList<Video> searchVideos(const QString &query = {}, const QString &tag = {}) const;
+    QList<Video> searchVideos(const QString &query = {}, qint64 tagId = 0) const;
 
     /**
      * @brief 一覧表示用の軽量な動画データリストを検索する（高速・低メモリ）
      * @param query 検索キーワード
-     * @param tag 絞り込み対象のタグ名
+     * @param tagId 絞り込み対象のタグID（0はタグ指定なし）
      * @return VideoLightItemオブジェクトのリスト
      */
-    QList<VideoLightItem> searchVideosLight(const QString &query = {}, const QString &tag = {}) const;
+    QList<VideoLightItem> searchVideosLight(const QString &query = {}, qint64 tagId = 0,
+                                            bool favoritesOnly = false, int minPlayCount = 0,
+                                            bool duplicatesOnly = false, const QString &sortKey = {},
+                                            int limit = -1, int offset = 0) const;
+    int countVideosLight(const QString &query = {}, qint64 tagId = 0,
+                         bool favoritesOnly = false, int minPlayCount = 0,
+                         bool duplicatesOnly = false) const;
 
     /**
      * @brief 指定したIDの動画詳細情報を取得する
@@ -77,6 +84,7 @@ public:
      * @return タグ名のリスト
      */
     QList<QString> tagsForVideo(qint64 videoId) const;
+    QList<qint64> tagIdsForVideo(qint64 videoId) const;
 
     /**
      * @brief 登録されているすべてのタグ名を取得する
@@ -117,20 +125,20 @@ public:
 
     /**
      * @brief 小項目（タグ）を削除する
-     * @param tagName タグ名
+     * @param tagId タグID
      * @param error エラーメッセージ格納用ポインタ
      * @return 成否
      */
-    bool deleteTag(const QString &tagName, QString *error = nullptr);
+    bool deleteTag(qint64 tagId, QString *error = nullptr);
 
     /**
      * @brief 動画にタグを割り当てる（既存の割り当てを上書きまたは再設定）
      * @param videoId 動画ID
-     * @param tagNames 割り当てるタグ名のリスト
+     * @param tagIds 割り当てるタグIDのリスト
      * @param error エラーメッセージ格納用ポインタ
      * @return 成否
      */
-    bool setVideoTags(qint64 videoId, const QStringList &tagNames, QString *error = nullptr);
+    bool setVideoTags(qint64 videoId, const QList<qint64> &tagIds, QString *error = nullptr);
 
     /**
      * @brief 動画情報をデータベースに挿入または更新（Upsert）する
@@ -139,6 +147,11 @@ public:
      * @return 成否
      */
     bool upsertVideo(const Video &video, QString *error = nullptr);
+
+    /**
+     * @brief スキャンで既存情報を上書きせず、動画メタデータのみを保存する
+     */
+    bool updateVideoMetadata(const Video &video, QString *error = nullptr);
 
     /**
      * @brief 指定したファイルパスの動画情報を削除する

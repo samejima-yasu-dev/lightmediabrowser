@@ -124,7 +124,7 @@ The application does not modify the original video files.
 
 The library database is separate from the filesystem.
 
-When a registered folder exists during a scan, records and thumbnails for video files no longer found in that folder are deleted. If the registered folder itself is unavailable, its records and thumbnails are kept in case an external drive has only been temporarily disconnected.
+After a complete scan of an available registered folder, records and thumbnails for video files no longer found in that folder are deleted. If any part of a scan is unavailable or unreadable, missing-file cleanup is skipped to avoid deleting records based on incomplete results. If a registered folder itself is unavailable, its records and thumbnails are kept in case an external drive has only been temporarily disconnected.
 
 ---
 
@@ -197,7 +197,7 @@ Its primary purpose is simple:
   * Qt Network
 * **Database:** SQLite 3
 * **Build system:** CMake 3.21+
-* **Media processing:** FFmpeg
+* **Media processing:** FFmpeg command-line tools (`ffmpeg` and `ffprobe`)
 
 ---
 
@@ -209,7 +209,7 @@ To build and run LightMediaBrowser, you need:
 * A C++20-compatible compiler such as GCC or Clang
 * Qt 6 development packages
 * SQLite 3 development packages
-* FFmpeg development libraries
+* `ffmpeg` and `ffprobe` command-line tools at runtime
 
 ### Ubuntu / Debian
 
@@ -221,10 +221,7 @@ sudo apt install \
   cmake \
   qt6-base-dev \
   libsqlite3-dev \
-  libavformat-dev \
-  libavcodec-dev \
-  libavutil-dev \
-  pkg-config
+  ffmpeg
 ```
 
 ---
@@ -351,3 +348,5 @@ If you find a problem, please open an issue with:
 MIT License.
 
 See [LICENSE](LICENSE) for details.
+
+The application invokes the separately licensed Qt, SQLite, and FFmpeg components. Release AppImages include available copyright texts for the packaged Qt, SQLite, and FFmpeg packages under `usr/share/doc/lightmediabrowser/third-party/`; review those notices and the actual package build configuration when redistributing. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the dependency and packaging scope.

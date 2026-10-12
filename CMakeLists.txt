@@ -9,10 +9,6 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Concurrent Network)
 find_package(SQLite3 REQUIRED)
-find_package(PkgConfig QUIET)
-if(PkgConfig_FOUND)
-    pkg_check_modules(FFMPEG QUIET IMPORTED_TARGET libavformat libavcodec libavutil)
-endif()
 
 add_executable(lightmediabrowser
     src/main.cpp
@@ -31,11 +27,7 @@ add_executable(lightmediabrowser
 target_include_directories(lightmediabrowser PRIVATE src)
 target_link_libraries(lightmediabrowser PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Concurrent Qt6::Network SQLite::SQLite3)
 
-if(TARGET PkgConfig::FFMPEG)
-    target_link_libraries(lightmediabrowser PRIVATE PkgConfig::FFMPEG)
-    target_compile_definitions(lightmediabrowser PRIVATE LIGHTMEDIABROWSER_HAS_FFMPEG=1)
-endif()
-
 install(TARGETS lightmediabrowser RUNTIME DESTINATION bin)
 install(FILES resources/lightmediabrowser.desktop DESTINATION share/applications)
 install(FILES resources/lightmediabrowser.png DESTINATION share/icons/hicolor/256x256/apps)
+install(FILES LICENSE THIRD_PARTY_NOTICES.md DESTINATION share/doc/lightmediabrowser)
