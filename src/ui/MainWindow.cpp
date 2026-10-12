@@ -163,8 +163,10 @@ void MainWindow::buildUi()
 
     m_duplicateFilter = new QComboBox(this);
     m_duplicateFilter->addItem(QStringLiteral("All"), false);
-    m_duplicateFilter->addItem(QStringLiteral("Duplicates"), true);
-    m_duplicateFilter->setToolTip(QStringLiteral("Show files with duplicate file names"));
+    m_duplicateFilter->addItem(QStringLiteral("Same-size candidates"), true);
+    m_duplicateFilter->setToolTip(QStringLiteral(
+        "Show files whose size matches another library file, even if the filename changed. "
+        "Matching sizes do not confirm identical contents."));
     toolbar->addWidget(m_duplicateFilter);
 
     toolbar->addSeparator();
@@ -222,6 +224,7 @@ void MainWindow::buildUi()
     m_videoList->setViewMode(QListView::IconMode);
     m_videoList->setResizeMode(QListView::Adjust);
     m_videoList->setMovement(QListView::Static);
+    m_videoList->setUniformItemSizes(true);
     m_videoList->setIconSize(QSize(200, 112));
     m_videoList->setGridSize(QSize(230, 162));
     m_videoList->setSpacing(12);

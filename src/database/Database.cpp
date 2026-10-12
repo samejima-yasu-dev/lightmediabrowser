@@ -272,11 +272,12 @@ QList<VideoLightItem> Database::searchVideosLight(const QString &queryText, qint
     sql += QStringLiteral(")");
     if (duplicatesOnly) {
         sql += QStringLiteral(
-            ", duplicate_names AS (SELECT lower(trim(file_name)) AS normalized_name FROM filtered "
-            "GROUP BY normalized_name HAVING COUNT(*)>1)");
+            ", duplicate_sizes AS (SELECT file_size FROM videos GROUP BY file_size HAVING COUNT(*)>1)");
     }
     sql += QStringLiteral(" SELECT v.id, v.file_path, v.file_name, v.file_size, v.file_mtime, v.is_favorite, v.play_count FROM filtered v WHERE 1=1");
-    if (duplicatesOnly) sql += QStringLiteral(" AND lower(trim(v.file_name)) IN (SELECT normalized_name FROM duplicate_names)");
+    if (duplicatesOnly) {
+        sql += QStringLiteral(" AND v.file_size IN (SELECT file_size FROM duplicate_sizes)");
+    }
     if (sortKey == QStringLiteral("newest")) sql += QStringLiteral(" ORDER BY v.file_mtime DESC, v.file_name COLLATE NOCASE");
     else if (sortKey == QStringLiteral("size")) sql += QStringLiteral(" ORDER BY v.file_size DESC, v.file_name COLLATE NOCASE");
     else if (sortKey == QStringLiteral("plays")) sql += QStringLiteral(" ORDER BY v.play_count DESC, v.file_name COLLATE NOCASE");
@@ -319,7 +320,7 @@ int Database::countVideosLight(const QString &queryText, qint64 tagId, bool favo
     QSqlQuery query(m_database);
     const bool hasText = !queryText.trimmed().isEmpty();
     QString sql = QStringLiteral(
-        "WITH filtered AS (SELECT v.file_name FROM videos v WHERE 1=1");
+        "WITH filtered AS (SELECT v.file_name, v.file_size FROM videos v WHERE 1=1");
     if (tagId > 0) {
         sql += QStringLiteral(" AND EXISTS (SELECT 1 FROM video_tags vt WHERE vt.video_id=v.id AND vt.tag_id=?)");
     }
@@ -329,11 +330,12 @@ int Database::countVideosLight(const QString &queryText, qint64 tagId, bool favo
     sql += QStringLiteral(")");
     if (duplicatesOnly) {
         sql += QStringLiteral(
-            ", duplicate_names AS (SELECT lower(trim(file_name)) AS normalized_name FROM filtered "
-            "GROUP BY normalized_name HAVING COUNT(*)>1)");
+            ", duplicate_sizes AS (SELECT file_size FROM videos GROUP BY file_size HAVING COUNT(*)>1)");
     }
     sql += QStringLiteral(" SELECT COUNT(*) FROM filtered v WHERE 1=1");
-    if (duplicatesOnly) sql += QStringLiteral(" AND lower(trim(v.file_name)) IN (SELECT normalized_name FROM duplicate_names)");
+    if (duplicatesOnly) {
+        sql += QStringLiteral(" AND v.file_size IN (SELECT file_size FROM duplicate_sizes)");
+    }
     query.prepare(sql);
     if (tagId > 0) query.addBindValue(tagId);
     if (hasText) {

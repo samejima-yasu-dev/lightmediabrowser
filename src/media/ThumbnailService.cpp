@@ -24,7 +24,7 @@ QString ThumbnailService::cachedPath(const QString &videoPath)
 {
     const QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/thumbnails");
     const QByteArray key = QCryptographicHash::hash(videoPath.toUtf8(), QCryptographicHash::Sha256).toHex();
-    return cacheDir + QLatin1Char('/') + QString::fromLatin1(key) + QStringLiteral("-t60.jpg");
+    return cacheDir + QLatin1Char('/') + QString::fromLatin1(key) + QStringLiteral("-320x180-v2.jpg");
 }
 
 void ThumbnailService::generate(const QString &videoPath)
@@ -52,7 +52,9 @@ void ThumbnailService::generate(const QString &videoPath)
                 QStringLiteral("-ss"), timestamp,
                 QStringLiteral("-i"), videoPath,
                 QStringLiteral("-frames:v"), QStringLiteral("1"),
-                QStringLiteral("-vf"), QStringLiteral("scale=320:-1"),
+                QStringLiteral("-vf"),
+                QStringLiteral("scale=320:180:force_original_aspect_ratio=decrease,"
+                               "pad=320:180:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1"),
                 thumbnailPath
             });
             process.start();
