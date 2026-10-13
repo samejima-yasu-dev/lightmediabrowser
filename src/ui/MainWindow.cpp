@@ -257,9 +257,14 @@ void MainWindow::buildUi()
     splitter->setStretchFactor(1, 1);
     setCentralWidget(splitter);
 
-    connect(m_videoList, &QListWidget::itemClicked, this, &MainWindow::showDetails);
-    connect(m_videoList, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *current, QListWidgetItem *) {
-        showDetails(current);
+    auto *detailsTimer = new QTimer(this);
+    detailsTimer->setSingleShot(true);
+    detailsTimer->setInterval(200);
+    connect(detailsTimer, &QTimer::timeout, this, [this] {
+        showDetails(m_videoList->currentItem());
+    });
+    connect(m_videoList, &QListWidget::currentItemChanged, this, [this, detailsTimer](QListWidgetItem *current, QListWidgetItem *) {
+        detailsTimer->start();
         const int itemsPerRow = qMax(1, m_videoList->viewport()->width() / m_videoList->gridSize().width());
         if (current && m_loadedVideoCount > 0
             && m_videoList->row(current) >= m_loadedVideoCount - itemsPerRow) {
