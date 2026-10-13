@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 void MainWindow::buildUi()
 {
-    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.8-alpha"));
+    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.9-alpha"));
     showMaximized(); // アプリ起動時にウィンドウを最大化（フルスクリーン表示）してボタンが隠れないようにする
     const QString lightStyle = QStringLiteral(R"(
         QMainWindow, QWidget { background: #f5f7f8; color: #1d2930; }
