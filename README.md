@@ -6,8 +6,7 @@
 
 It is designed specifically for **video management** — scanning, browsing, searching, tagging, and organizing your collection.
 
-**It is not a video player.**
-Use the video player you prefer, such as VLC, mpv, or MPC-HC/BE, to play your files.
+**It is not a video player.** Play your files with the external player you prefer, such as VLC, mpv, or MPC-HC/BE.
 
 > **Status: 0.0.9-alpha**
 >
@@ -19,15 +18,14 @@ Use the video player you prefer, such as VLC, mpv, or MPC-HC/BE, to play your fi
 
 When you have a large collection of video files, simply opening them in a file manager can become difficult.
 
-LightMediaBrowser provides a lightweight local library for your videos:
+LightMediaBrowser provides a lightweight local library for your video collection:
 
 * Scan multiple local folders
-* Browse videos with thumbnails
+* Browse videos in a thumbnail-based library
 * Search and filter your collection
 * Organize videos with tags
 * View video metadata
-* Mark videos as favorites
-* Track playback counts
+* Mark favorites and track playback counts
 * Open videos with your preferred external player
 
 The application focuses on **managing your video collection**, rather than trying to replace your video player.
@@ -39,7 +37,7 @@ The application focuses on **managing your video collection**, rather than tryin
 ### Local Video Library
 
 * Add and manage multiple folders
-* Recursively scan directories for video files
+* Recursively scan folders for video files
 * Browse videos in a thumbnail-based library
 * Original video files are never modified by the application
 
@@ -56,23 +54,25 @@ The application focuses on **managing your video collection**, rather than tryin
 * Search your video library
 * Filter videos
 * Find videos by filename and other stored information
-* Organize videos with tags
+* Filter by favorites, playback count, and tags
+* Find same-size video candidates
+
+Matching file sizes do not confirm that video contents are identical.
 
 ### Tags & Organization
 
 * Create tag categories
 * Assign tags to videos
-* Use tags to organize large collections
-* Add notes to videos
+* Use tags and notes to organize large collections
 * Mark videos as favorites
 
 ### Video Metadata
 
-LightMediaBrowser extracts and displays information such as:
+LightMediaBrowser retrieves and displays information such as:
 
 * Duration
 * Resolution
-* Video codec
+* Video and audio codecs
 * Other available media metadata
 
 ### External Video Players
@@ -89,11 +89,7 @@ This keeps LightMediaBrowser focused on its main purpose:
 
 ## Local-first & Non-destructive
 
-LightMediaBrowser is designed to work entirely with your local media collection.
-
-Your original video files remain where they are.
-
-The application stores library information separately in a SQLite database.
+LightMediaBrowser is designed to manage media stored locally. Library information is stored separately in a SQLite database, and your original video files remain in place.
 
 It does **not**:
 
@@ -109,8 +105,9 @@ Your media files remain yours.
 
 ## Data Storage
 
-LightMediaBrowser stores library information in a SQLite database and application settings using Qt's standard settings system.
-The parallel thread limit for thumbnail generation can be toggled with **Thumbnail Threads: Limited / Unlimited** in the toolbar. The limit is enabled by default to reduce CPU load; the button label changes to show the active setting. This preference is saved and restored on the next launch.
+Library information is stored in a SQLite database, and application preferences use Qt's standard settings system.
+
+Use **Thumbnail Threads: Limited / Unlimited** in the toolbar to toggle the parallel thread limit for thumbnail generation. The limit is enabled by default to reduce CPU load. The button label shows the active setting, and your preference is restored the next time you launch the application.
 
 On Linux, the default locations are:
 
@@ -118,8 +115,6 @@ On Linux, the default locations are:
 ~/.local/share/LightMediaBrowser/database.sqlite
 ~/.config/LightMediaBrowser/LightMediaBrowser.conf
 ```
-
-The application does not modify the original video files.
 
 ### About deleted or moved files
 
@@ -133,9 +128,9 @@ After a complete scan of an available registered folder, records and thumbnails 
 
 **Current version: 0.0.9-alpha**
 
-LightMediaBrowser is currently in early development.
+LightMediaBrowser is in early development.
 
-The main video-management workflow is already implemented:
+The core video-management workflow is implemented:
 
 ```text
 Add folder
@@ -153,15 +148,11 @@ Tag / Organize
 Open with your preferred player
 ```
 
-The 0.0.x releases are intended to validate the application's basic design and workflow.
+The 0.0.x releases are intended to validate the application's basic design and workflow. Changes may include:
 
-Expect:
-
-* Bugs
-* Missing features
+* Bugs and missing features
 * UI changes
-* Database/schema changes
-* API and internal architecture changes
+* Database schema, API, and internal architecture changes
 
 Feedback and bug reports are welcome.
 
@@ -169,19 +160,16 @@ Feedback and bug reports are welcome.
 
 ## What LightMediaBrowser is Not
 
-LightMediaBrowser intentionally does not try to be an all-in-one media application.
+LightMediaBrowser is not intended to be an all-in-one media application.
 
 It is not intended to be:
 
 * A video player
-* A video editor
-* A video converter
+* A video editor or converter
 * A media streaming server
 * A cloud media service
 
-Its primary purpose is simple:
-
-> **Manage and browse your local video collection quickly.**
+Its purpose is simple: **manage and browse your local video collection quickly.**
 
 ---
 
@@ -254,6 +242,8 @@ Run:
 ./build/lightmediabrowser
 ```
 
+Thumbnail generation and video metadata retrieval require `ffmpeg` and `ffprobe` to be available at runtime.
+
 ---
 
 ## Project Structure
@@ -271,7 +261,8 @@ lightmediabrowser/
 │   ├── scanner/
 │   ├── ui/
 │   └── main.cpp
-└── README.md
+├── README.md
+└── README.jp.md
 ```
 
 ### Main Components
@@ -326,7 +317,26 @@ Possible future improvements include:
 * Improved cross-platform packaging
 * Additional filtering and organization features
 
-The roadmap is intentionally flexible during the 0.0.x development stage.
+The roadmap may change as the 0.0.x series develops.
+
+---
+
+## Contributing
+
+Bug reports, suggestions, and feedback are welcome. When reporting an issue, please include as much of the following information as possible:
+
+* Steps to reproduce
+* Expected and actual results
+* Operating system
+* Relevant application or console output
+
+---
+
+## License
+
+The application is licensed under the MIT License; see [LICENSE](LICENSE) for details.
+
+Qt, SQLite, and FFmpeg are subject to their respective license terms. Release AppImages include available copyright and license documents from the bundled Qt, SQLite, and FFmpeg packages under `usr/share/doc/lightmediabrowser/third-party/`. Before redistribution, review the bundled components and their license terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the covered components.
 
 ---
 
