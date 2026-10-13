@@ -110,6 +110,7 @@ Your media files remain yours.
 ## Data Storage
 
 LightMediaBrowser stores library information in a SQLite database and application settings using Qt's standard settings system.
+The parallel thread limit for thumbnail generation can be toggled with **Thumbnail Threads: Limited / Unlimited** in the toolbar. The limit is enabled by default to reduce CPU load; the button label changes to show the active setting. This preference is saved and restored on the next launch.
 
 On Linux, the default locations are:
 

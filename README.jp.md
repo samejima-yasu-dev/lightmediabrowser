@@ -111,6 +111,7 @@ LightMediaBrowserは以下のことを行いません。
 ## Data Storage
 
 LightMediaBrowserは、ライブラリ情報をSQLiteデータベースに保存し、アプリケーション設定にはQtの標準設定システムを使用します。
+サムネイル生成の並列スレッド数は、ツールバーの「Thumbnail Threads: Limited / Unlimited」で切り替えられます。既定ではCPU負荷を抑える上限が有効で、ボタンを押すと「Limited」と「Unlimited」の表示が切り替わります。この設定は保存され、次回起動時にも引き継がれます。
 
 Linuxでは、デフォルトで以下の場所に保存されます。
 

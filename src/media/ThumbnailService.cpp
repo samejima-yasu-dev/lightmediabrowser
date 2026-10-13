@@ -11,6 +11,7 @@
 #include <QStandardPaths>
 #include <QThread>
 #include <QUuid>
+#include <limits>
 
 namespace
 {
@@ -23,8 +24,15 @@ bool isValidThumbnail(const QString &path)
 
 ThumbnailService::ThumbnailService(QObject *parent) : QObject(parent)
 {
-    // CPU使用率が100%に張り付くのを防ぐため、並列生成スレッド数をコア数に応じて抑制（最大4スレッド）
-    const int threadCount = qBound(1, QThread::idealThreadCount() / 2, 4);
+    setThreadLimitEnabled(true);
+}
+
+void ThumbnailService::setThreadLimitEnabled(bool enabled)
+{
+    // 制限有効時はCPU負荷を抑えるため、並列生成スレッド数を最大4に抑制
+    const int threadCount = enabled
+        ? qBound(1, QThread::idealThreadCount() / 2, 4)
+        : std::numeric_limits<int>::max();
     m_pool.setMaxThreadCount(threadCount);
 }
 

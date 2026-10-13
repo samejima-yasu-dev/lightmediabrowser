@@ -13,6 +13,7 @@ public:
     explicit ThumbnailService(QObject *parent = nullptr);
     ~ThumbnailService() override;
     static QString cachedPath(const QString &videoPath);
+    void setThreadLimitEnabled(bool enabled);
     void generate(const QString &videoPath);
 
 signals:

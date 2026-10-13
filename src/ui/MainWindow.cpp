@@ -188,6 +188,17 @@ void MainWindow::buildUi()
     toolbar->addSeparator();
 
     auto *favoriteAction = toolbar->addAction(QStringLiteral("★ Favorite"));
+    const bool limitThumbnailThreads = QSettings()
+        .value(QStringLiteral("media/limitThumbnailThreads"), true).toBool();
+    m_thumbnailService.setThreadLimitEnabled(limitThumbnailThreads);
+    auto *thumbnailLimitAction = toolbar->addAction(
+        limitThumbnailThreads
+            ? QStringLiteral("Thumbnail Threads: Limited")
+            : QStringLiteral("Thumbnail Threads: Unlimited"));
+    thumbnailLimitAction->setCheckable(true);
+    thumbnailLimitAction->setChecked(limitThumbnailThreads);
+    thumbnailLimitAction->setToolTip(QStringLiteral(
+        "Toggle the parallel thumbnail generation thread limit."));
     auto *themeAction = toolbar->addAction(QStringLiteral("🌓 Theme"));
     themeAction->setCheckable(true);
     themeAction->setChecked(defaultDark); // 起動時の設定状態に合わせる
@@ -196,6 +207,13 @@ void MainWindow::buildUi()
     connect(removeAction, &QAction::triggered, this, &MainWindow::removeFolder);
     connect(scanAction, &QAction::triggered, this, &MainWindow::scanFolder);
     connect(favoriteAction, &QAction::triggered, this, &MainWindow::toggleFavorite);
+    connect(thumbnailLimitAction, &QAction::toggled, this, [this, thumbnailLimitAction](bool enabled) {
+        QSettings().setValue(QStringLiteral("media/limitThumbnailThreads"), enabled);
+        m_thumbnailService.setThreadLimitEnabled(enabled);
+        thumbnailLimitAction->setText(enabled
+            ? QStringLiteral("Thumbnail Threads: Limited")
+            : QStringLiteral("Thumbnail Threads: Unlimited"));
+    });
     connect(themeAction, &QAction::toggled, this, [this, lightStyle, darkStyle](bool dark) {
         QSettings().setValue(QStringLiteral("ui/darkTheme"), dark);
         setStyleSheet(dark ? lightStyle + darkStyle : lightStyle);
