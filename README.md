@@ -336,28 +336,4 @@ Bug reports, suggestions, and feedback are welcome. When reporting an issue, ple
 
 The application is licensed under the MIT License; see [LICENSE](LICENSE) for details.
 
-Qt, SQLite, and FFmpeg are subject to their respective license terms. Release AppImages include available copyright and license documents from the bundled Qt, SQLite, and FFmpeg packages under `usr/share/doc/lightmediabrowser/third-party/`. Before redistribution, review the bundled components and their license terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the covered components.
-
----
-
-## Contributing
-
-Bug reports, suggestions, and feedback are welcome.
-
-If you find a problem, please open an issue with:
-
-* What you were trying to do
-* What you expected to happen
-* What actually happened
-* Your operating system
-* Relevant application or console output
-
----
-
-## License
-
-MIT License.
-
-See [LICENSE](LICENSE) for details.
-
-The application invokes the separately licensed Qt, SQLite, and FFmpeg components. Release AppImages include available copyright texts for the packaged Qt, SQLite, and FFmpeg packages under `usr/share/doc/lightmediabrowser/third-party/`; review those notices and the actual package build configuration when redistributing. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the dependency and packaging scope.
+The application uses Qt, SQLite, and FFmpeg, which are subject to their respective license terms. Release AppImages include available copyright notices from the bundled Qt, SQLite, and FFmpeg packages under `usr/share/doc/lightmediabrowser/third-party/`. Before redistributing, review the bundled components and their license terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the dependency and packaging scope.
