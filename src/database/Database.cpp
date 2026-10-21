@@ -1,6 +1,8 @@
 #include "database/Database.h"
 
 #include <QDir>
+#include <QDebug>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
 #include <QSqlError>
@@ -257,6 +259,8 @@ QList<VideoLightItem> Database::searchVideosLight(const QString &queryText, qint
                                                    bool duplicatesOnly, const QString &sortKey,
                                                    int limit, int offset) const
 {
+    QElapsedTimer elapsedTimer;
+    elapsedTimer.start();
     QList<VideoLightItem> result;
     QSqlQuery query(m_database);
     const bool hasText = !queryText.trimmed().isEmpty();
@@ -311,12 +315,16 @@ QList<VideoLightItem> Database::searchVideosLight(const QString &queryText, qint
         item.playCount = query.value(6).toInt();
         result.append(item);
     }
+    qInfo() << "Video page query:" << result.size() << "rows in"
+            << elapsedTimer.elapsed() << "ms; offset:" << offset;
     return result;
 }
 
 int Database::countVideosLight(const QString &queryText, qint64 tagId, bool favoritesOnly,
                                int minPlayCount, bool duplicatesOnly) const
 {
+    QElapsedTimer elapsedTimer;
+    elapsedTimer.start();
     QSqlQuery query(m_database);
     const bool hasText = !queryText.trimmed().isEmpty();
     QString sql = QStringLiteral(
@@ -348,7 +356,10 @@ int Database::countVideosLight(const QString &queryText, qint64 tagId, bool favo
         qWarning() << "Video count query failed:" << query.lastError().text();
         return 0;
     }
-    return query.value(0).toInt();
+    const int count = query.value(0).toInt();
+    qInfo() << "Video count query:" << count << "rows in"
+            << elapsedTimer.elapsed() << "ms";
+    return count;
 }
 
 QList<Video> Database::searchVideos(const QString &queryText, qint64 tagId) const

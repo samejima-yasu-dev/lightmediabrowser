@@ -27,6 +27,7 @@ private:
     {
         QList<Video> videos;
         QStringList errors;
+        qint64 elapsedMs = 0;
         bool complete = true;
     };
 

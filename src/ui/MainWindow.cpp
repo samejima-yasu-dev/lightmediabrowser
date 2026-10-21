@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -32,6 +33,7 @@
 #include <QDialogButtonBox>
 #include <QPalette>
 #include <QProcess>
+#include <QPixmap>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -60,12 +62,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     refreshTags();
     connect(&m_scanner, &MediaScanner::videoDiscovered, this, [this](const Video &video) {
         if (!m_databaseReady) return;
+        if (m_scanRegistrationCount == 0) m_scanRegistrationTimer.start();
         QString error;
         if (!m_database.upsertVideo(video, &error)) {
             qWarning() << "Could not register video:" << error;
             statusBar()->showMessage(error);
             return;
         }
+        ++m_scanRegistrationCount;
         m_thumbnailService.generate(video.filePath);
     });
     connect(&m_scanner, &MediaScanner::finished, this, &MainWindow::showScanResult);
@@ -84,12 +88,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         if (item) item->setIcon(QIcon());
         statusBar()->showMessage(message.isEmpty() ? QStringLiteral("Thumbnail generation failed") : QStringLiteral("Thumbnail failed: %1").arg(message));
     });
+    connect(&m_thumbnailService, &ThumbnailService::sampleGenerated, this,
+            [this](const QString &videoPath, int sampleIndex, const QString &thumbnailPath) {
+        if (videoPath != m_selectedVideoPath || sampleIndex < 0
+            || sampleIndex >= m_detailSampleLabels.size()) {
+            return;
+        }
+        const QPixmap thumbnail(thumbnailPath);
+        if (thumbnail.isNull()) return;
+        m_detailSampleLabels.at(sampleIndex)->setPixmap(thumbnail);
+        m_detailSampleLabels.at(sampleIndex)->setToolTip(thumbnailPath);
+    });
+    connect(&m_thumbnailService, &ThumbnailService::sampleFailed, this,
+            [this](const QString &videoPath, int sampleIndex, const QString &message) {
+        if (videoPath != m_selectedVideoPath || sampleIndex < 0
+            || sampleIndex >= m_detailSampleLabels.size()) {
+            return;
+        }
+        m_detailSampleLabels.at(sampleIndex)->setText(QStringLiteral("Preview unavailable"));
+        statusBar()->showMessage(QStringLiteral("Scene preview failed: %1").arg(message));
+    });
     if (!m_currentFolder.isEmpty()) QTimer::singleShot(0, this, &MainWindow::scanFolder);
 }
 
 void MainWindow::buildUi()
 {
-    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.9-alpha"));
+    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.10-alpha"));
     showMaximized(); // アプリ起動時にウィンドウを最大化（フルスクリーン表示）してボタンが隠れないようにする
     const QString lightStyle = QStringLiteral(R"(
         QMainWindow, QWidget { background: #f5f7f8; color: #1d2930; }
@@ -109,7 +133,9 @@ void MainWindow::buildUi()
         QListWidget::item { background: #ffffff; border: 1px solid #d7e0e3; border-radius: 8px; color: #1d2930; padding: 8px; }
         QListWidget::item:hover { background: #edf5f4; border-color: #2a9d8f; }
         QListWidget::item:selected { background: #d8eee9; border: 2px solid #2a9d8f; color: #1d2930; }
-        QLabel#detailsPanel { background: #ffffff; border-left: 1px solid #d7e0e3; padding: 20px; color: #33454d; }
+        QWidget#detailsPanel { background: #ffffff; border-left: 1px solid #d7e0e3; color: #33454d; }
+        QLabel#sceneThumbnail { background: #edf1f2; border: 1px solid #d7e0e3; color: #52636a; }
+        QScrollArea#detailsScroll { border: 0; }
         QStatusBar { background: #ffffff; color: #52636a; border-top: 1px solid #d7e0e3; }
     )");
     const QString darkStyle = QStringLiteral(R"(
@@ -129,7 +155,8 @@ void MainWindow::buildUi()
         QListWidget::item { background: #242a2d; border-color: #343d3f; color: #e7eceb; }
         QListWidget::item:hover { background: #2c3536; border-color: #43c6a8; }
         QListWidget::item:selected { background: #23443e; border-color: #43c6a8; color: #ffffff; }
-        QLabel#detailsPanel { background: #1d2225; border-left-color: #343b3f; color: #dce5e3; }
+        QWidget#detailsPanel { background: #1d2225; border-left-color: #343b3f; color: #dce5e3; }
+        QLabel#sceneThumbnail { background: #242a2d; border-color: #343d3f; color: #9caead; }
         QStatusBar { background: #202529; color: #9caead; border-top-color: #343b3f; }
     )");
     // 起動時にデフォルトでダークモードを適用（QSettingsに保存がない場合はtrue=ダークをデフォルトとする）
@@ -248,13 +275,38 @@ void MainWindow::buildUi()
     m_videoList->setGridSize(QSize(230, 162));
     m_videoList->setSpacing(12);
     m_videoList->setContextMenuPolicy(Qt::CustomContextMenu);
-    m_details = new QLabel(splitter);
-    m_details->setObjectName(QStringLiteral("detailsPanel"));
+    auto *detailsScroll = new QScrollArea(splitter);
+    detailsScroll->setObjectName(QStringLiteral("detailsScroll"));
+    detailsScroll->setWidgetResizable(true);
+    detailsScroll->setMinimumWidth(270);
+    auto *detailsPanel = new QWidget(detailsScroll);
+    detailsPanel->setObjectName(QStringLiteral("detailsPanel"));
+    auto *detailsLayout = new QVBoxLayout(detailsPanel);
+    m_details = new QLabel(detailsPanel);
     m_details->setText(QStringLiteral("Select a video to view file info and tags."));
     m_details->setWordWrap(true);
     m_details->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    m_details->setMinimumWidth(250);
+    detailsLayout->addWidget(m_details);
+    auto *previewHeading = new QLabel(QStringLiteral("Scene previews"), detailsPanel);
+    previewHeading->setStyleSheet(QStringLiteral("font-weight: 600;"));
+    detailsLayout->addWidget(previewHeading);
+    auto *previewGrid = new QGridLayout();
+    previewGrid->setContentsMargins(0, 0, 0, 0);
+    previewGrid->setVerticalSpacing(10);
+    for (int index = 0; index < 3; ++index) {
+        auto *thumbnail = new QLabel(QStringLiteral("Select a video"), detailsPanel);
+        thumbnail->setObjectName(QStringLiteral("sceneThumbnail"));
+        thumbnail->setAlignment(Qt::AlignCenter);
+        thumbnail->setFixedSize(220, 124);
+        thumbnail->setScaledContents(true);
+        m_detailSampleLabels.append(thumbnail);
+        previewGrid->addWidget(thumbnail, index, 0);
+    }
+    detailsLayout->addLayout(previewGrid);
+    detailsLayout->addStretch();
+    detailsScroll->setWidget(detailsPanel);
     splitter->setStretchFactor(1, 1);
+    splitter->setStretchFactor(2, 0);
     setCentralWidget(splitter);
 
     auto *detailsTimer = new QTimer(this);
@@ -349,6 +401,8 @@ void MainWindow::loadMoreVideos()
 {
     if (!m_databaseReady || m_nextVideoOffset >= m_totalVideoCount) return;
 
+    QElapsedTimer elapsedTimer;
+    elapsedTimer.start();
     const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
     const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
     const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
@@ -359,6 +413,7 @@ void MainWindow::loadMoreVideos()
         query, m_selectedTagId, favoritesOnly, minPlayCount, duplicatesOnly,
         sortKey, m_pageSize, m_nextVideoOffset);
     m_nextVideoOffset += page.size();
+    const int loadedBeforePage = m_loadedVideoCount;
     for (const VideoLightItem &video : page) {
         const QFileInfo fileInfo(video.filePath);
         if (!fileInfo.exists() || !QDir(fileInfo.absolutePath()).exists()) continue;
@@ -385,6 +440,9 @@ void MainWindow::loadMoreVideos()
         });
     }
     statusBar()->showMessage(QStringLiteral("%1 / %2 videos displayed").arg(m_loadedVideoCount).arg(m_totalVideoCount));
+    qInfo() << "Video page UI update:" << page.size() << "rows queried;"
+            << m_loadedVideoCount - loadedBeforePage << "rows displayed in"
+            << elapsedTimer.elapsed() << "ms";
 }
 
 void MainWindow::showVideoContextMenu(const QPoint &position)
@@ -566,10 +624,20 @@ void MainWindow::refreshTags()
 
 void MainWindow::showDetails(QListWidgetItem *item)
 {
-    if (!item) return;
+    if (!item) {
+        m_selectedVideoPath.clear();
+        m_details->setText(QStringLiteral("Select a video to view file info and tags."));
+        for (QLabel *thumbnail : m_detailSampleLabels) {
+            thumbnail->setText(QStringLiteral("Select a video"));
+            thumbnail->setPixmap(QPixmap());
+            thumbnail->setToolTip({});
+        }
+        return;
+    }
     const qint64 id = item->data(Qt::UserRole).toLongLong();
     Video video = m_database.findById(id);
     if (video.id != id) return;
+    m_selectedVideoPath = video.filePath;
 
     // 詳細を初めて開いたときにffprobeの結果を取得してDBに保存する
     if (video.durationMs <= 0 && !video.filePath.isEmpty() && QFileInfo::exists(video.filePath)) {
@@ -683,6 +751,28 @@ void MainWindow::showDetails(QListWidgetItem *item)
         .arg(favoriteStr)
         .arg(video.playCount)
         .arg(tags.isEmpty() ? QStringLiteral("Unknown") : tags.toHtmlEscaped()));
+
+    for (int index = 0; index < m_detailSampleLabels.size(); ++index) {
+        QLabel *thumbnail = m_detailSampleLabels.at(index);
+        thumbnail->setPixmap(QPixmap());
+        thumbnail->setToolTip({});
+        if (video.durationMs <= 0) {
+            thumbnail->setText(QStringLiteral("Duration unavailable"));
+            continue;
+        }
+        const QString cachedPath = ThumbnailService::sampledCachedPath(video.filePath, index);
+        const QPixmap cachedThumbnail(cachedPath);
+        if (cachedThumbnail.isNull()) {
+            thumbnail->setText(QStringLiteral("Generating..."));
+        } else {
+            thumbnail->setText({});
+            thumbnail->setPixmap(cachedThumbnail);
+            thumbnail->setToolTip(cachedPath);
+        }
+    }
+    if (video.durationMs > 0) {
+        m_thumbnailService.generateSamples(video.filePath, video.durationMs);
+    }
 }
 
 void MainWindow::toggleFavorite()
@@ -718,6 +808,11 @@ void MainWindow::playVideo(QListWidgetItem *item)
 
 void MainWindow::showScanResult(int count, bool complete, const QStringList &errors)
 {
+    if (m_scanRegistrationCount > 0) {
+        qInfo() << "Video registration on UI thread:" << m_scanRegistrationCount
+                << "videos in" << m_scanRegistrationTimer.elapsed() << "ms";
+        m_scanRegistrationCount = 0;
+    }
     if (complete) {
         removeMissingVideosFromAvailableFolders();
     } else {

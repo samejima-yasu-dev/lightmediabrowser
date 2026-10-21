@@ -6,6 +6,7 @@
 
 #include <QMainWindow>
 #include <QHash>
+#include <QElapsedTimer>
 #include <QList>
 #include <QStringList>
 
@@ -60,7 +61,9 @@ private:
     QTreeWidget *m_tagTree = nullptr;
     QListWidget *m_videoList = nullptr;
     QLabel *m_details = nullptr;
+    QList<QLabel *> m_detailSampleLabels;
     QString m_currentFolder;
+    QString m_selectedVideoPath;
     qint64 m_selectedTagId = 0;
     QStringList m_folders;
     QHash<QString, QString> m_thumbnailPaths;
@@ -68,6 +71,8 @@ private:
     int m_loadedVideoCount = 0;
     int m_nextVideoOffset = 0;
     int m_totalVideoCount = 0;
+    int m_scanRegistrationCount = 0;
+    QElapsedTimer m_scanRegistrationTimer;
     bool m_pageLoadScheduled = false;
     quint64 m_listingGeneration = 0;
     const int m_pageSize = 100;

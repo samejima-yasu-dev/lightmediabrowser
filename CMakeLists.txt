@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(LightMediaBrowser VERSION 0.0.9 LANGUAGES CXX)
+project(LightMediaBrowser VERSION 0.0.10 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,6 +9,20 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Concurrent Network)
 find_package(SQLite3 REQUIRED)
+
+include(CTest)
+if(BUILD_TESTING)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+
+    add_executable(thumbnail_service_test
+        tests/ThumbnailServiceTest.cpp
+        src/media/ThumbnailService.h
+        src/media/ThumbnailService.cpp
+    )
+    target_include_directories(thumbnail_service_test PRIVATE src)
+    target_link_libraries(thumbnail_service_test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+    add_test(NAME thumbnail_service_test COMMAND thumbnail_service_test)
+endif()
 
 add_executable(lightmediabrowser
     src/main.cpp

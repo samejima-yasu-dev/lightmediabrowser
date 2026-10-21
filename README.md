@@ -8,7 +8,7 @@ It is designed specifically for **video management** — scanning, browsing, sea
 
 **It is not a video player.** Play your files with the external player you prefer, such as VLC, mpv, or MPC-HC/BE.
 
-> **Status: 0.0.9-alpha**
+> **Status: 0.0.10-alpha**
 >
 > This is an early alpha release. The core workflow is usable, but features and internal architecture may change.
 
@@ -22,6 +22,7 @@ LightMediaBrowser provides a lightweight local library for your video collection
 
 * Scan multiple local folders
 * Browse videos in a thumbnail-based library
+* View three large, evenly spaced scene previews for the selected video
 * Search and filter your collection
 * Organize videos with tags
 * View video metadata
@@ -46,6 +47,7 @@ The application focuses on **managing your video collection**, rather than tryin
 * Asynchronous directory scanning
 * Asynchronous thumbnail generation
 * Thumbnail caching
+* Additional scene previews are generated only for the selected video and cached for later
 * Database-backed library
 * Designed to handle large local video collections
 
@@ -126,7 +128,7 @@ After a complete scan of an available registered folder, records and thumbnails 
 
 ## Project Status
 
-**Current version: 0.0.9-alpha**
+**Current version: 0.0.10-alpha**
 
 LightMediaBrowser is in early development.
 
