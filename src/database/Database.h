@@ -147,6 +147,7 @@ public:
      * @return 成否
      */
     bool upsertVideo(const Video &video, QString *error = nullptr);
+    bool upsertVideos(const QList<Video> &videos, QString *error = nullptr);
 
     /**
      * @brief スキャンで既存情報を上書きせず、動画メタデータのみを保存する

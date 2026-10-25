@@ -175,20 +175,53 @@ bool Database::migrate(QString *error)
 
 bool Database::upsertVideo(const Video &video, QString *error)
 {
+    return upsertVideos({video}, error);
+}
+
+bool Database::upsertVideos(const QList<Video> &videos, QString *error)
+{
+    if (videos.isEmpty()) return true;
+    if (!m_database.transaction()) {
+        if (error) *error = QStringLiteral("Could not start video registration transaction: %1")
+                                 .arg(m_database.lastError().text());
+        return false;
+    }
+
     QSqlQuery query(m_database);
-    query.prepare(QStringLiteral("INSERT INTO videos (file_path, file_name, file_size, file_mtime, created_at, updated_at) "
-                                 "VALUES (?, ?, ?, ?, ?, ?) "
-                                 "ON CONFLICT(file_path) DO UPDATE SET file_name=excluded.file_name, file_size=excluded.file_size, "
-                                 "file_mtime=excluded.file_mtime, updated_at=excluded.updated_at"));
+    const QString statement = QStringLiteral(
+        "INSERT INTO videos (file_path, file_name, file_size, file_mtime, created_at, updated_at) "
+        "VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(file_path) DO UPDATE SET file_name=excluded.file_name, file_size=excluded.file_size, "
+        "file_mtime=excluded.file_mtime, updated_at=excluded.updated_at");
+    if (!query.prepare(statement)) {
+        const QString message = query.lastError().text();
+        m_database.rollback();
+        if (error) *error = message;
+        return false;
+    }
+
     const qint64 now = QDateTime::currentSecsSinceEpoch();
-    query.addBindValue(video.filePath);
-    query.addBindValue(video.fileName);
-    query.addBindValue(video.fileSize);
-    query.addBindValue(video.fileMtime);
-    query.addBindValue(now);
-    query.addBindValue(now);
-    if (!query.exec()) {
-        if (error) *error = query.lastError().text();
+    for (const Video &video : videos) {
+        query.bindValue(0, video.filePath);
+        query.bindValue(1, video.fileName);
+        query.bindValue(2, video.fileSize);
+        query.bindValue(3, video.fileMtime);
+        query.bindValue(4, now);
+        query.bindValue(5, now);
+        if (query.exec()) continue;
+
+        const QString message = query.lastError().text();
+        query.finish();
+        m_database.rollback();
+        if (error) *error = message;
+        return false;
+    }
+
+    query.finish();
+    if (!m_database.commit()) {
+        const QString message = m_database.lastError().text();
+        m_database.rollback();
+        if (error) *error = QStringLiteral("Could not commit video registration: %1").arg(message);
         return false;
     }
     return true;

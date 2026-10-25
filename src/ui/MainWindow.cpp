@@ -1,4 +1,5 @@
 #include "ui/MainWindow.h"
+#include "media/VideoMetadataProbe.h"
 
 #include <QAction>
 #include <QComboBox>
@@ -7,6 +8,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QFileInfo>
+#include <QFutureWatcher>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -32,12 +34,8 @@
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QPalette>
-#include <QProcess>
 #include <QPixmap>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
+#include <QtConcurrent/QtConcurrentRun>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -60,17 +58,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     loadFolders();
     refreshVideos();
     refreshTags();
-    connect(&m_scanner, &MediaScanner::videoDiscovered, this, [this](const Video &video) {
-        if (!m_databaseReady) return;
+    connect(&m_scanner, &MediaScanner::videosDiscovered, this,
+            [this](const QList<Video> &videos) {
+        if (!m_databaseReady || videos.isEmpty()) return;
         if (m_scanRegistrationCount == 0) m_scanRegistrationTimer.start();
         QString error;
-        if (!m_database.upsertVideo(video, &error)) {
-            qWarning() << "Could not register video:" << error;
+        if (!m_database.upsertVideos(videos, &error)) {
+            qWarning() << "Could not register scanned videos:" << error;
             statusBar()->showMessage(error);
             return;
         }
-        ++m_scanRegistrationCount;
-        m_thumbnailService.generate(video.filePath);
+        m_scanRegistrationCount = videos.size();
+        for (const Video &video : videos) {
+            m_thumbnailService.generate(video.filePath);
+        }
     });
     connect(&m_scanner, &MediaScanner::finished, this, &MainWindow::showScanResult);
     connect(&m_scanner, &MediaScanner::progress, this, [this](int count) {
@@ -639,58 +640,41 @@ void MainWindow::showDetails(QListWidgetItem *item)
     if (video.id != id) return;
     m_selectedVideoPath = video.filePath;
 
-    // 詳細を初めて開いたときにffprobeの結果を取得してDBに保存する
+    // Probe metadata off the UI thread so slow files cannot block selection.
     if (video.durationMs <= 0 && !video.filePath.isEmpty() && QFileInfo::exists(video.filePath)) {
-        QProcess probe;
-        probe.start(QStringLiteral("ffprobe"), {
-            QStringLiteral("-v"), QStringLiteral("quiet"),
-            QStringLiteral("-print_format"), QStringLiteral("json"),
-            QStringLiteral("-show_format"), QStringLiteral("-show_streams"),
-            video.filePath
-        });
-        if (!probe.waitForStarted(1000)) {
-            statusBar()->showMessage(QStringLiteral("Could not start ffprobe: %1").arg(probe.errorString()));
-        } else if (!probe.waitForFinished(5000)) {
-            probe.kill();
-            probe.waitForFinished();
-            statusBar()->showMessage(QStringLiteral("ffprobe timed out for: %1").arg(video.fileName));
-        } else if (probe.exitStatus() != QProcess::NormalExit || probe.exitCode() != 0) {
-            const QString message = QString::fromLocal8Bit(probe.readAllStandardError()).trimmed();
-            statusBar()->showMessage(message.isEmpty()
-                ? QStringLiteral("ffprobe failed for: %1").arg(video.fileName)
-                : QStringLiteral("ffprobe failed: %1").arg(message));
-        } else {
-            QJsonParseError parseError;
-            const QJsonDocument document = QJsonDocument::fromJson(probe.readAllStandardOutput(), &parseError);
-            if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-                statusBar()->showMessage(QStringLiteral("Could not parse ffprobe output: %1").arg(parseError.errorString()));
-            } else {
-                const QJsonObject root = document.object();
-                const QJsonObject format = root.value(QStringLiteral("format")).toObject();
-                const double duration = format.value(QStringLiteral("duration")).toString().toDouble();
-                if (duration > 0) video.durationMs = static_cast<qint64>(duration * 1000.0);
-                video.containerFormat = format.value(QStringLiteral("format_name")).toString()
-                                            .section(QLatin1Char(','), 0, 0).toUpper();
-                for (const QJsonValue &streamValue : root.value(QStringLiteral("streams")).toArray()) {
-                    const QJsonObject stream = streamValue.toObject();
-                    const QString codec = stream.value(QStringLiteral("codec_name")).toString().toUpper();
-                    if (stream.value(QStringLiteral("codec_type")).toString() == QStringLiteral("video") &&
-                        video.videoCodec.isEmpty()) {
-                        video.videoCodec = codec;
-                        video.width = stream.value(QStringLiteral("width")).toInt();
-                        video.height = stream.value(QStringLiteral("height")).toInt();
-                    } else if (stream.value(QStringLiteral("codec_type")).toString() == QStringLiteral("audio") &&
-                               video.audioCodec.isEmpty()) {
-                        video.audioCodec = codec;
+        if (!m_metadataProbeIds.contains(id)) {
+            m_metadataProbeIds.insert(id);
+            auto *watcher = new QFutureWatcher<VideoMetadataProbeResult>(this);
+            connect(watcher, &QFutureWatcher<VideoMetadataProbeResult>::finished, this,
+                    [this, watcher, id] {
+                const VideoMetadataProbeResult result = watcher->result();
+                m_metadataProbeIds.remove(id);
+                watcher->deleteLater();
+
+                if (!result.error.isEmpty()) {
+                    if (result.video.filePath == m_selectedVideoPath) {
+                        statusBar()->showMessage(result.error);
                     }
+                    return;
                 }
 
                 QString error;
-                if (!m_database.updateVideoMetadata(video, &error)) {
+                if (!m_database.updateVideoMetadata(result.video, &error)) {
                     qWarning() << "Could not cache video metadata:" << error;
-                    statusBar()->showMessage(QStringLiteral("Could not save video metadata: %1").arg(error));
+                    if (result.video.filePath == m_selectedVideoPath) {
+                        statusBar()->showMessage(QStringLiteral("Could not save video metadata: %1").arg(error));
+                    }
+                    return;
                 }
-            }
+
+                if (result.video.durationMs > 0 &&
+                    result.video.filePath == m_selectedVideoPath) {
+                    showDetails(m_videoItemsByPath.value(result.video.filePath, nullptr));
+                }
+            });
+            watcher->setFuture(QtConcurrent::run([video] {
+                return probeVideoMetadata(video);
+            }));
         }
     }
 

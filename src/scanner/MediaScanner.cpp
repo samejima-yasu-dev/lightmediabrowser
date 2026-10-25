@@ -15,7 +15,7 @@ MediaScanner::MediaScanner(QObject *parent) : QObject(parent)
         qInfo() << "Media scan finished:" << result.videos.size()
                 << "videos in" << result.elapsedMs << "ms; complete:"
                 << result.complete << "errors:" << result.errors;
-        for (const Video &video : result.videos) emit videoDiscovered(video);
+        emit videosDiscovered(result.videos);
         emit finished(result.videos.size(), result.complete, result.errors);
     });
 }

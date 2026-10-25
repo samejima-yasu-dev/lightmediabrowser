@@ -18,7 +18,7 @@ public:
     void scanFolders(const QStringList &folders);
 
 signals:
-    void videoDiscovered(const Video &video);
+    void videosDiscovered(const QList<Video> &videos);
     void progress(int count);
     void finished(int count, bool complete, const QStringList &errors);
 

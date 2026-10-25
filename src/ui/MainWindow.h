@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QElapsedTimer>
 #include <QList>
+#include <QSet>
 #include <QStringList>
 
 class QLineEdit;
@@ -72,6 +73,7 @@ private:
     int m_nextVideoOffset = 0;
     int m_totalVideoCount = 0;
     int m_scanRegistrationCount = 0;
+    QSet<qint64> m_metadataProbeIds;
     QElapsedTimer m_scanRegistrationTimer;
     bool m_pageLoadScheduled = false;
     quint64 m_listingGeneration = 0;
