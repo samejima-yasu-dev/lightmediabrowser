@@ -8,7 +8,7 @@ It is designed specifically for **video management** — scanning, browsing, sea
 
 **It is not a video player.** Play your files with the external player you prefer, such as VLC, mpv, or MPC-HC/BE.
 
-> **Status: 0.0.11-alpha**
+> **Status: 0.0.12-alpha**
 >
 > This is an early alpha release. The core workflow is usable, but features and internal architecture may change.
 
@@ -46,6 +46,8 @@ The application focuses on **managing your video collection**, rather than tryin
 
 * Asynchronous directory scanning
 * Asynchronous thumbnail generation
+* Generate missing thumbnails for all registered videos from the toolbar, with progress and cancellation in the status bar while keeping the rest of the app usable
+* Bulk thumbnail generation uses a bounded two-worker queue and skips valid cached thumbnails
 * Thumbnail caching
 * Additional scene previews are generated only for the selected video and cached for later
 * Database-backed library
@@ -128,7 +130,7 @@ After a complete scan of an available registered folder, records and thumbnails 
 
 ## Project Status
 
-**Current version: 0.0.11-alpha**
+**Current version: 0.0.12-alpha**
 
 LightMediaBrowser is in early development.
 
