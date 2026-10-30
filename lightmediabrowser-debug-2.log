@@ -1,0 +1,253 @@
+Loaded media folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Video count query: 23038 rows in 0 ms
+Video page query: 100 rows in 0 ms; offset: 0
+Video page UI update: 100 rows queried; 94 rows displayed in 6 ms; loaded: 94 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 128500 KiB; open FDs: 20/1024"
+Video page query: 100 rows in 0 ms; offset: 100
+Video page UI update: 100 rows queried; 70 rows displayed in 3 ms; loaded: 164 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 130624 KiB; open FDs: 19/1024"
+Starting scan across all registered folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Scan traversal started: folders: 5 "peak RSS: 130624 KiB; open FDs: 20/1024"
+Media scan found 986 videos so far after folder "/home/yasutaka/ダウンロード"
+Media scan found 992 videos so far after folder "/home/yasutaka/ビデオ"
+Scan traversal progress: videos: 1000 directories: 656 pending directories: 549 elapsed ms: 37 "peak RSS: 154124 KiB; open FDs: 29/1024"
+Video page query: 100 rows in 0 ms; offset: 200
+Scan traversal progress: videos: 2000 directories: 1427 pending directories: 5581 elapsed ms: 91 "peak RSS: 178404 KiB; open FDs: 29/1024"
+Video page UI update: 100 rows queried; 88 rows displayed in 5 ms; loaded: 252 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 178404 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 3000 directories: 2474 pending directories: 5581 elapsed ms: 132 "peak RSS: 194532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 300
+Video page UI update: 100 rows queried; 81 rows displayed in 4 ms; loaded: 333 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 194660 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 4000 directories: 3483 pending directories: 5581 elapsed ms: 170 "peak RSS: 201188 KiB; open FDs: 29/1024"
+Video page query: 100 rows in 0 ms; offset: 400
+Video page UI update: 100 rows queried; 81 rows displayed in 4 ms; loaded: 414 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 211556 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 500
+Scan traversal progress: videos: 5000 directories: 4514 pending directories: 5581 elapsed ms: 205 "peak RSS: 211556 KiB; open FDs: 29/1024"
+Video page UI update: 100 rows queried; 45 rows displayed in 3 ms; loaded: 459 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 211556 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 600
+Video page UI update: 100 rows queried; 43 rows displayed in 3 ms; loaded: 502 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 211940 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 6000 directories: 5501 pending directories: 5581 elapsed ms: 249 "peak RSS: 212324 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 700
+Video page UI update: 100 rows queried; 64 rows displayed in 4 ms; loaded: 566 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 212452 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 800
+Video page UI update: 100 rows queried; 22 rows displayed in 2 ms; loaded: 588 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 212708 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 7000 directories: 6815 pending directories: 5581 elapsed ms: 294 "peak RSS: 212836 KiB; open FDs: 29/1024"
+Video page query: 100 rows in 0 ms; offset: 900
+Video page UI update: 100 rows queried; 38 rows displayed in 3 ms; loaded: 626 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 213220 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1000
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 640 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 213604 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 8000 directories: 8413 pending directories: 5581 elapsed ms: 353 "peak RSS: 213988 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1100
+Video page UI update: 100 rows queried; 12 rows displayed in 2 ms; loaded: 652 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 213988 KiB; open FDs: 28/1024"
+Media scan found 8243 videos so far after folder "/run/media/yasutaka/16TBHDD/data"
+Video page query: 100 rows in 1 ms; offset: 1200
+Video page UI update: 100 rows queried; 41 rows displayed in 3 ms; loaded: 693 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 214500 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 9000 directories: 9362 pending directories: 5581 elapsed ms: 405 "peak RSS: 215012 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1300
+Video page UI update: 100 rows queried; 13 rows displayed in 2 ms; loaded: 706 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 215012 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1400
+Video page UI update: 100 rows queried; 35 rows displayed in 3 ms; loaded: 741 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 217572 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 10000 directories: 10386 pending directories: 5581 elapsed ms: 444 "peak RSS: 217956 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1500
+Video page UI update: 100 rows queried; 11 rows displayed in 2 ms; loaded: 752 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 217956 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 11000 directories: 11382 pending directories: 5581 elapsed ms: 481 "peak RSS: 218468 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1600
+Video page UI update: 100 rows queried; 19 rows displayed in 3 ms; loaded: 771 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 218468 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1700
+Video page UI update: 100 rows queried; 40 rows displayed in 3 ms; loaded: 811 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 219748 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1800
+Scan traversal progress: videos: 12000 directories: 12132 pending directories: 5581 elapsed ms: 533 "peak RSS: 220900 KiB; open FDs: 28/1024"
+Video page UI update: 100 rows queried; 63 rows displayed in 4 ms; loaded: 874 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 221028 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1900
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 888 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 221668 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 13000 directories: 13127 pending directories: 5581 elapsed ms: 567 "peak RSS: 221924 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2000
+Video page UI update: 100 rows queried; 24 rows displayed in 3 ms; loaded: 912 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 222052 KiB; open FDs: 29/1024"
+Scan traversal progress: videos: 14000 directories: 14139 pending directories: 5581 elapsed ms: 601 "peak RSS: 222564 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2100
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 926 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 222564 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2200
+Video page UI update: 100 rows queried; 8 rows displayed in 2 ms; loaded: 934 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 223076 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 15000 directories: 15149 pending directories: 5581 elapsed ms: 635 "peak RSS: 223716 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2300
+Video page UI update: 100 rows queried; 6 rows displayed in 2 ms; loaded: 940 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 223844 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 16000 directories: 16168 pending directories: 5581 elapsed ms: 669 "peak RSS: 224356 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2400
+Video page UI update: 100 rows queried; 1 rows displayed in 2 ms; loaded: 941 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 224356 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2500
+Video page UI update: 100 rows queried; 2 rows displayed in 2 ms; loaded: 943 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 224740 KiB; open FDs: 28/1024"
+Scan traversal progress: videos: 17000 directories: 17154 pending directories: 5581 elapsed ms: 706 "peak RSS: 225252 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2600
+Video page UI update: 100 rows queried; 1 rows displayed in 2 ms; loaded: 944 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 225252 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2700
+Video page UI update: 100 rows queried; 3 rows displayed in 3 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 225508 KiB; open FDs: 29/1024"
+Video page query: 100 rows in 2 ms; offset: 2800
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226020 KiB; open FDs: 28/1024"
+Media scan found 17575 videos so far after folder "/run/media/yasutaka/ADATA3/nano-share"
+Total media scan found 17575 videos across all folders
+Scan traversal completed: videos: 17575 directories: 17887 max pending directories: 5581 elapsed ms: 775 complete: false errors: 1 "peak RSS: 226020 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2900
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226020 KiB; open FDs: 28/1024"
+Media scan finished: 17575 videos in 775 ms; complete: false errors: QList("Folder is unavailable or unreadable: /run/media/yasutaka/16THDD2/data")
+Scan batch registration started: videos: 17575 previously registered: 0 "peak RSS: 226020 KiB; open FDs: 28/1024"
+Scan batch database registration completed: videos: 17575 elapsed ms: 121 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Scan batch registration completed: videos: 17575 outstanding thumbnail tasks: 0 elapsed ms: 121 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Scan result received: videos: 17575 complete: false errors: 1 registered: 17575 outstanding thumbnail tasks: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video registration on UI thread: 17575 videos in 121 ms
+Media scan incomplete: "Folder is unavailable or unreadable: /run/media/yasutaka/16THDD2/data"
+Video count query: 23038 rows in 0 ms
+Video page query: 100 rows in 0 ms; offset: 0
+Video page UI update: 100 rows queried; 94 rows displayed in 4 ms; loaded: 94 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 100
+Video page UI update: 100 rows queried; 70 rows displayed in 3 ms; loaded: 164 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 200
+Video page UI update: 100 rows queried; 88 rows displayed in 4 ms; loaded: 252 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 300
+Video page UI update: 100 rows queried; 81 rows displayed in 4 ms; loaded: 333 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 400
+Video page UI update: 100 rows queried; 81 rows displayed in 4 ms; loaded: 414 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 500
+Video page UI update: 100 rows queried; 45 rows displayed in 3 ms; loaded: 459 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 600
+Video page UI update: 100 rows queried; 43 rows displayed in 3 ms; loaded: 502 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 700
+Video page UI update: 100 rows queried; 64 rows displayed in 3 ms; loaded: 566 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226532 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 800
+Video page UI update: 100 rows queried; 22 rows displayed in 2 ms; loaded: 588 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 226788 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 0 ms; offset: 900
+Video page UI update: 100 rows queried; 38 rows displayed in 2 ms; loaded: 626 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 227172 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1000
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 640 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 227556 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1100
+Video page UI update: 100 rows queried; 12 rows displayed in 2 ms; loaded: 652 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 227812 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1200
+Video page UI update: 100 rows queried; 41 rows displayed in 3 ms; loaded: 693 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 228196 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1300
+Video page UI update: 100 rows queried; 13 rows displayed in 2 ms; loaded: 706 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 228580 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1400
+Video page UI update: 100 rows queried; 35 rows displayed in 3 ms; loaded: 741 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 228964 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1500
+Video page UI update: 100 rows queried; 11 rows displayed in 2 ms; loaded: 752 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 229220 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1600
+Video page UI update: 100 rows queried; 19 rows displayed in 2 ms; loaded: 771 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 229604 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1700
+Video page UI update: 100 rows queried; 40 rows displayed in 3 ms; loaded: 811 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 229988 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1800
+Video page UI update: 100 rows queried; 63 rows displayed in 4 ms; loaded: 874 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 230372 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 1900
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 888 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 230628 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2000
+Video page UI update: 100 rows queried; 24 rows displayed in 3 ms; loaded: 912 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 231012 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2100
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 926 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 231396 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2200
+Video page UI update: 100 rows queried; 8 rows displayed in 2 ms; loaded: 934 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 231652 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2300
+Video page UI update: 100 rows queried; 6 rows displayed in 2 ms; loaded: 940 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232036 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2400
+Video page UI update: 100 rows queried; 1 rows displayed in 2 ms; loaded: 941 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232420 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 2500
+Video page UI update: 100 rows queried; 2 rows displayed in 2 ms; loaded: 943 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2600
+Video page UI update: 100 rows queried; 1 rows displayed in 2 ms; loaded: 944 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2700
+Video page UI update: 100 rows queried; 3 rows displayed in 3 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2800
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 2900
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 3000
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 1 ms; offset: 3100
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3200
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3300
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3400
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3500
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3600
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3700
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3800
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 3900
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4000
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4100
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 947 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4200
+Video page UI update: 100 rows queried; 1 rows displayed in 2 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4300
+Video page UI update: 100 rows queried; 0 rows displayed in 2 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 4400
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 4500
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4600
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4700
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 2 ms; offset: 4800
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 948 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 4900
+Video page UI update: 100 rows queried; 2 rows displayed in 4 ms; loaded: 950 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 5000
+Video page UI update: 100 rows queried; 0 rows displayed in 4 ms; loaded: 950 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5100
+Video page UI update: 100 rows queried; 0 rows displayed in 3 ms; loaded: 950 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5200
+Video page UI update: 100 rows queried; 3 rows displayed in 4 ms; loaded: 953 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5300
+Video page UI update: 100 rows queried; 4 rows displayed in 3 ms; loaded: 957 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5400
+Video page UI update: 100 rows queried; 11 rows displayed in 4 ms; loaded: 968 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5500
+Video page UI update: 100 rows queried; 62 rows displayed in 4 ms; loaded: 1030 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5600
+Video page UI update: 100 rows queried; 54 rows displayed in 4 ms; loaded: 1084 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 3 ms; offset: 5700
+Video page UI update: 100 rows queried; 90 rows displayed in 7 ms; loaded: 1174 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 5800
+Video page UI update: 100 rows queried; 45 rows displayed in 5 ms; loaded: 1219 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 5900
+Video page UI update: 100 rows queried; 48 rows displayed in 4 ms; loaded: 1267 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6000
+Video page UI update: 100 rows queried; 48 rows displayed in 4 ms; loaded: 1315 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6100
+Video page UI update: 100 rows queried; 18 rows displayed in 4 ms; loaded: 1333 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6200
+Video page UI update: 100 rows queried; 48 rows displayed in 4 ms; loaded: 1381 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6300
+Video page UI update: 100 rows queried; 78 rows displayed in 5 ms; loaded: 1459 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 6400
+Video page UI update: 100 rows queried; 77 rows displayed in 6 ms; loaded: 1536 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6500
+Video page UI update: 100 rows queried; 83 rows displayed in 5 ms; loaded: 1619 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6600
+Video page UI update: 100 rows queried; 89 rows displayed in 5 ms; loaded: 1708 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 6700
+Video page UI update: 100 rows queried; 87 rows displayed in 5 ms; loaded: 1795 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 6800
+Video page UI update: 100 rows queried; 76 rows displayed in 6 ms; loaded: 1871 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 6900
+Video page UI update: 100 rows queried; 90 rows displayed in 6 ms; loaded: 1961 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 4 ms; offset: 7000
+Video page UI update: 100 rows queried; 96 rows displayed in 6 ms; loaded: 2057 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7100
+Video page UI update: 100 rows queried; 92 rows displayed in 6 ms; loaded: 2149 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7200
+Video page UI update: 100 rows queried; 96 rows displayed in 6 ms; loaded: 2245 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7300
+Video page UI update: 100 rows queried; 87 rows displayed in 8 ms; loaded: 2332 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7400
+Video page UI update: 100 rows queried; 90 rows displayed in 6 ms; loaded: 2422 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7500
+Video page UI update: 100 rows queried; 86 rows displayed in 7 ms; loaded: 2508 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7600
+Video page UI update: 100 rows queried; 99 rows displayed in 7 ms; loaded: 2607 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 6 ms; offset: 7700
+Video page UI update: 100 rows queried; 97 rows displayed in 7 ms; loaded: 2704 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"
+Video page query: 100 rows in 5 ms; offset: 7800
+Video page UI update: 100 rows queried; 100 rows displayed in 6 ms; loaded: 2804 of 23038 thumbnail tasks outstanding: 0 "peak RSS: 232804 KiB; open FDs: 28/1024"

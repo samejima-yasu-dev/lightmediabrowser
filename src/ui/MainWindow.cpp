@@ -1,4 +1,6 @@
 #include "ui/MainWindow.h"
+#include "ui/VisibleThumbnailRows.h"
+#include "ui/VideoListLayout.h"
 #include "media/VideoMetadataProbe.h"
 
 #include <QAction>
@@ -35,6 +37,8 @@
 #include <QDialogButtonBox>
 #include <QPalette>
 #include <QPixmap>
+#include <QProgressBar>
+#include <QPushButton>
 #include <QtConcurrent/QtConcurrentRun>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -61,16 +65,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(&m_scanner, &MediaScanner::videosDiscovered, this,
             [this](const QList<Video> &videos) {
         if (!m_databaseReady || videos.isEmpty()) return;
-        if (m_scanRegistrationCount == 0) m_scanRegistrationTimer.start();
         QString error;
         if (!m_database.upsertVideos(videos, &error)) {
             qWarning() << "Could not register scanned videos:" << error;
             statusBar()->showMessage(error);
             return;
-        }
-        m_scanRegistrationCount = videos.size();
-        for (const Video &video : videos) {
-            m_thumbnailService.generate(video.filePath);
         }
     });
     connect(&m_scanner, &MediaScanner::finished, this, &MainWindow::showScanResult);
@@ -82,12 +81,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         QListWidgetItem *item = m_videoItemsByPath.value(videoPath, nullptr);
         if (item) {
             item->setIcon(QIcon(thumbnailPath));
+            m_thumbnailDispatchTimer->start();
         }
     });
     connect(&m_thumbnailService, &ThumbnailService::failed, this, [this](const QString &videoPath, const QString &message) {
         QListWidgetItem *item = m_videoItemsByPath.value(videoPath, nullptr);
         if (item) item->setIcon(QIcon());
-        statusBar()->showMessage(message.isEmpty() ? QStringLiteral("Thumbnail generation failed") : QStringLiteral("Thumbnail failed: %1").arg(message));
+        if (item && !m_bulkThumbnailRunning) {
+            statusBar()->showMessage(message.isEmpty()
+                ? QStringLiteral("Thumbnail generation failed")
+                : QStringLiteral("Thumbnail failed: %1").arg(message));
+        }
     });
     connect(&m_thumbnailService, &ThumbnailService::sampleGenerated, this,
             [this](const QString &videoPath, int sampleIndex, const QString &thumbnailPath) {
@@ -130,7 +134,7 @@ void MainWindow::buildUi()
         QTreeWidget::item:hover { background: #edf5f4; }
         QTreeWidget::item:selected { background: #2a9d8f; color: #ffffff; }
         QHeaderView::section { background: #ffffff; color: #52636a; border: 0; padding: 8px; font-weight: 600; }
-        QListWidget { background: #f5f7f8; border: 0; padding: 18px; outline: 0; }
+        QListWidget { background: #f5f7f8; border: 0; padding: %1px; outline: 0; }
         QListWidget::item { background: #ffffff; border: 1px solid #d7e0e3; border-radius: 8px; color: #1d2930; padding: 8px; }
         QListWidget::item:hover { background: #edf5f4; border-color: #2a9d8f; }
         QListWidget::item:selected { background: #d8eee9; border: 2px solid #2a9d8f; color: #1d2930; }
@@ -138,7 +142,7 @@ void MainWindow::buildUi()
         QLabel#sceneThumbnail { background: #edf1f2; border: 1px solid #d7e0e3; color: #52636a; }
         QScrollArea#detailsScroll { border: 0; }
         QStatusBar { background: #ffffff; color: #52636a; border-top: 1px solid #d7e0e3; }
-    )");
+    )").arg(VideoListVerticalPadding);
     const QString darkStyle = QStringLiteral(R"(
         QMainWindow, QWidget { background: #171a1d; color: #e7eceb; }
         QToolBar { background: #202529; border-bottom-color: #343b3f; }
@@ -216,6 +220,10 @@ void MainWindow::buildUi()
     toolbar->addSeparator();
 
     auto *favoriteAction = toolbar->addAction(QStringLiteral("★ Favorite"));
+    m_generateAllThumbnailsAction = toolbar->addAction(
+        QStringLiteral("Generate All Thumbnails"));
+    m_generateAllThumbnailsAction->setToolTip(QStringLiteral(
+        "Generate missing thumbnails for every registered video using two workers."));
     const bool limitThumbnailThreads = QSettings()
         .value(QStringLiteral("media/limitThumbnailThreads"), true).toBool();
     m_thumbnailService.setThreadLimitEnabled(limitThumbnailThreads);
@@ -235,6 +243,8 @@ void MainWindow::buildUi()
     connect(removeAction, &QAction::triggered, this, &MainWindow::removeFolder);
     connect(scanAction, &QAction::triggered, this, &MainWindow::scanFolder);
     connect(favoriteAction, &QAction::triggered, this, &MainWindow::toggleFavorite);
+    connect(m_generateAllThumbnailsAction, &QAction::triggered,
+            this, &MainWindow::generateAllThumbnails);
     connect(thumbnailLimitAction, &QAction::toggled, this, [this, thumbnailLimitAction](bool enabled) {
         QSettings().setValue(QStringLiteral("media/limitThumbnailThreads"), enabled);
         m_thumbnailService.setThreadLimitEnabled(enabled);
@@ -273,7 +283,10 @@ void MainWindow::buildUi()
     m_videoList->setMovement(QListView::Static);
     m_videoList->setUniformItemSizes(true);
     m_videoList->setIconSize(QSize(200, 112));
-    m_videoList->setGridSize(QSize(230, 162));
+    const QSize videoGridSize = videoListGridSize(m_videoList->iconSize(),
+                                                  m_videoList->fontMetrics().height());
+    m_videoList->setGridSize(videoGridSize);
+    m_videoList->setMinimumHeight(videoListMinimumHeight(videoGridSize));
     m_videoList->setSpacing(12);
     m_videoList->setContextMenuPolicy(Qt::CustomContextMenu);
     auto *detailsScroll = new QScrollArea(splitter);
@@ -329,16 +342,115 @@ void MainWindow::buildUi()
     connect(m_tagTree, &QTreeWidget::itemClicked, this, &MainWindow::selectTag);
     connect(m_tagTree, &QTreeWidget::customContextMenuRequested, this, &MainWindow::showTagContextMenu);
 
+    m_thumbnailDispatchTimer = new QTimer(this);
+    m_thumbnailDispatchTimer->setSingleShot(true);
+    m_thumbnailDispatchTimer->setInterval(100);
+    connect(m_thumbnailDispatchTimer, &QTimer::timeout,
+            this, &MainWindow::generateVisibleThumbnails);
+
     // 無限スクロール・遅延ロード対応：スクロールバーが一番下付近に達したら追加ロードする
     connect(m_videoList->verticalScrollBar(), &QAbstractSlider::valueChanged, this, [this](int value) {
         auto *bar = m_videoList->verticalScrollBar();
+        m_thumbnailDispatchTimer->start();
         // スクロール位置が最大値の100px手前以内に達した場合に次のページをロード
         if (bar && value >= bar->maximum() - 100) {
             loadMoreVideos();
         }
     });
 
+    m_bulkThumbnailStatus = new QLabel(this);
+    m_bulkThumbnailProgress = new QProgressBar(this);
+    m_bulkThumbnailProgress->setTextVisible(false);
+    m_bulkThumbnailProgress->setFixedWidth(150);
+    m_cancelBulkThumbnailButton = new QPushButton(QStringLiteral("Cancel"), this);
+    m_cancelBulkThumbnailButton->setFlat(true);
+    statusBar()->addPermanentWidget(m_bulkThumbnailStatus, 1);
+    statusBar()->addPermanentWidget(m_bulkThumbnailProgress);
+    statusBar()->addPermanentWidget(m_cancelBulkThumbnailButton);
+    m_bulkThumbnailStatus->hide();
+    m_bulkThumbnailProgress->hide();
+    m_cancelBulkThumbnailButton->hide();
+    connect(m_cancelBulkThumbnailButton, &QPushButton::clicked, this, [this] {
+        if (!m_bulkThumbnailRunning) return;
+        m_thumbnailService.cancelGenerateAll();
+        m_cancelBulkThumbnailButton->setText(QStringLiteral("Canceling..."));
+        m_cancelBulkThumbnailButton->setEnabled(false);
+    });
+
     statusBar()->showMessage(QStringLiteral("Ready"));
+}
+
+void MainWindow::generateAllThumbnails()
+{
+    if (!m_databaseReady) {
+        statusBar()->showMessage(QStringLiteral("Database is not available"));
+        return;
+    }
+
+    const QList<VideoLightItem> videos = m_database.searchVideosLight(
+        {}, 0, false, 0, false, QStringLiteral("name"), -1, 0);
+    QStringList videoPaths;
+    videoPaths.reserve(videos.size());
+    for (const VideoLightItem &video : videos) {
+        videoPaths.append(video.filePath);
+    }
+    if (videoPaths.isEmpty()) {
+        statusBar()->showMessage(QStringLiteral("No videos to generate thumbnails for"));
+        return;
+    }
+
+    m_bulkThumbnailProgress->setRange(0, videoPaths.size());
+    m_bulkThumbnailProgress->setValue(0);
+    m_bulkThumbnailStatus->setText(QStringLiteral("Preparing %1 thumbnails...")
+                                       .arg(videoPaths.size()));
+    m_cancelBulkThumbnailButton->setText(QStringLiteral("Cancel"));
+    m_cancelBulkThumbnailButton->setEnabled(true);
+    m_bulkThumbnailStatus->show();
+    m_bulkThumbnailProgress->show();
+    m_cancelBulkThumbnailButton->show();
+
+    auto *bulkUiContext = new QObject(this);
+    connect(
+        &m_thumbnailService, &ThumbnailService::bulkProgress, bulkUiContext,
+        [this](int completed, int total, int generated, int skipped, int failed) {
+            m_bulkThumbnailProgress->setRange(0, qMax(1, total));
+            m_bulkThumbnailProgress->setValue(completed);
+            m_bulkThumbnailStatus->setText(QStringLiteral(
+                "Thumbnails %1/%2 — %3 generated, %4 existing, %5 failed")
+                                               .arg(completed).arg(total)
+                                               .arg(generated).arg(skipped).arg(failed));
+        });
+    connect(
+        &m_thumbnailService, &ThumbnailService::bulkFinished, bulkUiContext,
+        [this, bulkUiContext](int, int generated, int skipped, int failed, bool canceled) {
+            m_bulkThumbnailRunning = false;
+            m_bulkThumbnailStatus->hide();
+            m_bulkThumbnailProgress->hide();
+            m_cancelBulkThumbnailButton->hide();
+            m_cancelBulkThumbnailButton->setText(QStringLiteral("Cancel"));
+            m_cancelBulkThumbnailButton->setEnabled(true);
+            m_generateAllThumbnailsAction->setEnabled(true);
+            statusBar()->showMessage(
+                QStringLiteral("%1 Thumbnail generation: %2 generated, %3 existing, %4 failed")
+                    .arg(canceled ? QStringLiteral("Canceled.") : QStringLiteral("Finished."))
+                    .arg(generated).arg(skipped).arg(failed));
+            QObject::disconnect(&m_thumbnailService, nullptr, bulkUiContext, nullptr);
+            bulkUiContext->deleteLater();
+        });
+
+    m_generateAllThumbnailsAction->setEnabled(false);
+    m_bulkThumbnailRunning = true;
+    if (!m_thumbnailService.generateAll(videoPaths)) {
+        m_bulkThumbnailRunning = false;
+        QObject::disconnect(&m_thumbnailService, nullptr, bulkUiContext, nullptr);
+        bulkUiContext->deleteLater();
+        m_generateAllThumbnailsAction->setEnabled(true);
+        m_bulkThumbnailStatus->hide();
+        m_bulkThumbnailProgress->hide();
+        m_cancelBulkThumbnailButton->hide();
+        statusBar()->showMessage(QStringLiteral("Thumbnail generation is already running"));
+        return;
+    }
 }
 
 void MainWindow::addFolder()
@@ -402,8 +514,6 @@ void MainWindow::loadMoreVideos()
 {
     if (!m_databaseReady || m_nextVideoOffset >= m_totalVideoCount) return;
 
-    QElapsedTimer elapsedTimer;
-    elapsedTimer.start();
     const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
     const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
     const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
@@ -414,7 +524,6 @@ void MainWindow::loadMoreVideos()
         query, m_selectedTagId, favoritesOnly, minPlayCount, duplicatesOnly,
         sortKey, m_pageSize, m_nextVideoOffset);
     m_nextVideoOffset += page.size();
-    const int loadedBeforePage = m_loadedVideoCount;
     for (const VideoLightItem &video : page) {
         const QFileInfo fileInfo(video.filePath);
         if (!fileInfo.exists() || !QDir(fileInfo.absolutePath()).exists()) continue;
@@ -423,6 +532,7 @@ void MainWindow::loadMoreVideos()
         auto *item = new QListWidgetItem(
             marker + video.fileName + QStringLiteral("\nPlays: ") + QString::number(video.playCount), m_videoList);
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        item->setSizeHint(m_videoList->gridSize());
         item->setData(Qt::UserRole, video.id);
         item->setToolTip(video.filePath);
         m_videoItemsByPath.insert(video.filePath, item);
@@ -430,6 +540,7 @@ void MainWindow::loadMoreVideos()
         if (QFileInfo::exists(thumbnailPath)) item->setIcon(QIcon(thumbnailPath));
         ++m_loadedVideoCount;
     }
+    m_thumbnailDispatchTimer->start();
     if (m_loadedVideoCount < targetCount && m_nextVideoOffset < m_totalVideoCount &&
         !page.isEmpty() && !m_pageLoadScheduled) {
         m_pageLoadScheduled = true;
@@ -441,9 +552,25 @@ void MainWindow::loadMoreVideos()
         });
     }
     statusBar()->showMessage(QStringLiteral("%1 / %2 videos displayed").arg(m_loadedVideoCount).arg(m_totalVideoCount));
-    qInfo() << "Video page UI update:" << page.size() << "rows queried;"
-            << m_loadedVideoCount - loadedBeforePage << "rows displayed in"
-            << elapsedTimer.elapsed() << "ms";
+}
+
+void MainWindow::generateVisibleThumbnails()
+{
+    const QRect viewport = m_videoList->viewport()->rect();
+    int firstRow = m_videoList->indexAt(QPoint(0, 0)).row();
+    if (firstRow < 0) firstRow = 0;
+
+    QList<QRect> itemRects;
+    for (int row = firstRow; row < m_videoList->count(); ++row) {
+        const QRect itemRect = m_videoList->visualItemRect(m_videoList->item(row));
+        if (!itemRect.isValid() || itemRect.top() > viewport.bottom()) break;
+        itemRects.append(itemRect);
+    }
+
+    for (const int visibleIndex : visibleThumbnailRows(itemRects, viewport)) {
+        const QListWidgetItem *item = m_videoList->item(firstRow + visibleIndex);
+        m_thumbnailService.generate(item->toolTip());
+    }
 }
 
 void MainWindow::showVideoContextMenu(const QPoint &position)
@@ -792,11 +919,6 @@ void MainWindow::playVideo(QListWidgetItem *item)
 
 void MainWindow::showScanResult(int count, bool complete, const QStringList &errors)
 {
-    if (m_scanRegistrationCount > 0) {
-        qInfo() << "Video registration on UI thread:" << m_scanRegistrationCount
-                << "videos in" << m_scanRegistrationTimer.elapsed() << "ms";
-        m_scanRegistrationCount = 0;
-    }
     if (complete) {
         removeMissingVideosFromAvailableFolders();
     } else {

@@ -6,12 +6,12 @@
 
 #include <QMainWindow>
 #include <QHash>
-#include <QElapsedTimer>
 #include <QList>
 #include <QSet>
 #include <QStringList>
 
 class QLineEdit;
+class QAction;
 class QListWidget;
 class QTreeWidget;
 class QLabel;
@@ -19,7 +19,10 @@ class QListWidgetItem;
 class QTreeWidgetItem;
 class QComboBox;
 class QPoint;
+class QProgressBar;
+class QPushButton;
 class QSpinBox;
+class QTimer;
 
 class MainWindow : public QMainWindow
 {
@@ -31,6 +34,7 @@ private slots:
     void addFolder();
     void removeFolder();
     void scanFolder();
+    void generateAllThumbnails();
     void refreshVideos();
     void showDetails(QListWidgetItem *item);
     void playVideo(QListWidgetItem *item);
@@ -47,6 +51,7 @@ private:
     void loadFolders();
     void saveFolders() const;
     void loadMoreVideos();
+    void generateVisibleThumbnails();
     void removeMissingVideosFromAvailableFolders();
     QString trText(const QString &key) const;
 
@@ -54,11 +59,17 @@ private:
     ThumbnailService m_thumbnailService;
     MediaScanner m_scanner;
     QLineEdit *m_search = nullptr;
+    QAction *m_generateAllThumbnailsAction = nullptr;
+    QLabel *m_bulkThumbnailStatus = nullptr;
     QComboBox *m_folderSelector = nullptr;
     QComboBox *m_libraryFilter = nullptr;
     QComboBox *m_duplicateFilter = nullptr;
     QComboBox *m_sortSelector = nullptr;
     QSpinBox *m_minPlayCount = nullptr;
+    QTimer *m_thumbnailDispatchTimer = nullptr;
+    QProgressBar *m_bulkThumbnailProgress = nullptr;
+    QPushButton *m_cancelBulkThumbnailButton = nullptr;
+    bool m_bulkThumbnailRunning = false;
     QTreeWidget *m_tagTree = nullptr;
     QListWidget *m_videoList = nullptr;
     QLabel *m_details = nullptr;
@@ -72,9 +83,7 @@ private:
     int m_loadedVideoCount = 0;
     int m_nextVideoOffset = 0;
     int m_totalVideoCount = 0;
-    int m_scanRegistrationCount = 0;
     QSet<qint64> m_metadataProbeIds;
-    QElapsedTimer m_scanRegistrationTimer;
     bool m_pageLoadScheduled = false;
     quint64 m_listingGeneration = 0;
     const int m_pageSize = 100;

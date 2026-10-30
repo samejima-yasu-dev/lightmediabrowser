@@ -1,8 +1,6 @@
 #include "scanner/MediaScanner.h"
 
 #include <QDir>
-#include <QDebug>
-#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QSet>
@@ -12,9 +10,6 @@ MediaScanner::MediaScanner(QObject *parent) : QObject(parent)
 {
     connect(&m_watcher, &QFutureWatcher<ScanResult>::finished, this, [this] {
         const ScanResult result = m_watcher.result();
-        qInfo() << "Media scan finished:" << result.videos.size()
-                << "videos in" << result.elapsedMs << "ms; complete:"
-                << result.complete << "errors:" << result.errors;
         emit videosDiscovered(result.videos);
         emit finished(result.videos.size(), result.complete, result.errors);
     });
@@ -39,8 +34,6 @@ void MediaScanner::scanFolders(const QStringList &folders)
     MediaScanner *scanner = this;
     m_watcher.setFuture(QtConcurrent::run([folders, scanner] {
         ScanResult result;
-        QElapsedTimer elapsedTimer;
-        elapsedTimer.start();
         const QSet<QString> extensions = {
             QStringLiteral("mp4"), QStringLiteral("mkv"), QStringLiteral("avi"),
             QStringLiteral("mov"), QStringLiteral("webm"), QStringLiteral("m4v"),
@@ -102,10 +95,7 @@ void MediaScanner::scanFolders(const QStringList &folders)
                     }
                 }
             }
-            qInfo() << "Media scan found" << result.videos.size() << "videos so far after folder" << folder;
         }
-        qInfo() << "Total media scan found" << result.videos.size() << "videos across all folders";
-        result.elapsedMs = elapsedTimer.elapsed();
         return result;
     }));
 }

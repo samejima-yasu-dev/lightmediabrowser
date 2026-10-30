@@ -53,6 +53,14 @@ if(BUILD_TESTING)
     target_include_directories(video_metadata_probe_test PRIVATE src)
     target_link_libraries(video_metadata_probe_test PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME video_metadata_probe_test COMMAND video_metadata_probe_test)
+
+    add_executable(visible_thumbnail_rows_test
+        tests/VisibleThumbnailRowsTest.cpp
+    )
+    target_include_directories(visible_thumbnail_rows_test PRIVATE src)
+    target_link_libraries(visible_thumbnail_rows_test PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Test)
+    add_test(NAME visible_thumbnail_rows_test COMMAND visible_thumbnail_rows_test)
+    set_tests_properties(visible_thumbnail_rows_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 add_executable(lightmediabrowser
@@ -66,6 +74,8 @@ add_executable(lightmediabrowser
     src/database/Database.cpp
     src/scanner/MediaScanner.h
     src/scanner/MediaScanner.cpp
+    src/ui/VisibleThumbnailRows.h
+    src/ui/VideoListLayout.h
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
     resources/resources.qrc

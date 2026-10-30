@@ -2,6 +2,7 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
 #include <QImageReader>
@@ -16,6 +17,7 @@
 namespace
 {
 constexpr int SampleCount = 3;
+constexpr int BulkThumbnailWorkerCount = 2;
 
 bool isValidThumbnail(const QString &path)
 {
@@ -30,7 +32,9 @@ QString thumbnailCacheDirectory()
 }
 
 bool createThumbnail(const QString &videoPath, const QList<qint64> &timestampsMs,
-                     const QString &thumbnailPath, QString *error)
+                     const QString &thumbnailPath, QString *error,
+                     const std::atomic_bool *cancelRequested = nullptr,
+                     bool *wasCanceled = nullptr)
 {
     if (isValidThumbnail(thumbnailPath)) return true;
 
@@ -55,7 +59,35 @@ bool createThumbnail(const QString &videoPath, const QList<qint64> &timestampsMs
             temporaryPath
         });
         process.start();
-        const bool finished = process.waitForFinished(30000);
+        bool finished = false;
+        if (cancelRequested) {
+            QElapsedTimer processTimer;
+            processTimer.start();
+            while (process.state() != QProcess::NotRunning) {
+                if (cancelRequested->load(std::memory_order_relaxed)) {
+                    process.kill();
+                    process.waitForFinished();
+                    if (wasCanceled) *wasCanceled = true;
+                    QFile::remove(temporaryPath);
+                    if (error) *error = QStringLiteral("Thumbnail generation canceled");
+                    return false;
+                }
+                if (process.waitForFinished(100)) {
+                    finished = true;
+                    break;
+                }
+                if (processTimer.elapsed() >= 30000) {
+                    process.kill();
+                    process.waitForFinished();
+                    break;
+                }
+            }
+            if (!finished && process.state() == QProcess::NotRunning) {
+                finished = process.waitForFinished(0);
+            }
+        } else {
+            finished = process.waitForFinished(30000);
+        }
         if (!finished && process.state() != QProcess::NotRunning) {
             process.kill();
             process.waitForFinished();
@@ -97,6 +129,7 @@ bool createThumbnail(const QString &videoPath, const QList<qint64> &timestampsMs
 ThumbnailService::ThumbnailService(QObject *parent) : QObject(parent)
 {
     setThreadLimitEnabled(true);
+    m_bulkPool.setMaxThreadCount(BulkThumbnailWorkerCount);
 }
 
 void ThumbnailService::setThreadLimitEnabled(bool enabled)
@@ -110,6 +143,8 @@ void ThumbnailService::setThreadLimitEnabled(bool enabled)
 
 ThumbnailService::~ThumbnailService()
 {
+    cancelGenerateAll();
+    m_bulkPool.waitForDone();
     m_pool.waitForDone();
 }
 
@@ -141,6 +176,143 @@ QString ThumbnailService::sampledCachedPath(const QString &videoPath, int sample
         + QStringLiteral("-sample-%1-320x180-v1.jpg").arg(sampleIndex);
 }
 
+bool ThumbnailService::generateAll(const QStringList &videoPaths)
+{
+    int workerCount = 0;
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_bulkRunning) return false;
+
+        QSet<QString> uniquePaths;
+        m_bulkQueue.clear();
+        for (const QString &videoPath : videoPaths) {
+            if (videoPath.isEmpty() || uniquePaths.contains(videoPath)) continue;
+            uniquePaths.insert(videoPath);
+            m_bulkQueue.enqueue(videoPath);
+        }
+
+        m_bulkTotal = m_bulkQueue.size();
+        m_bulkCompleted = 0;
+        m_bulkGenerated = 0;
+        m_bulkSkipped = 0;
+        m_bulkFailed = 0;
+        m_bulkCancelRequested.store(false, std::memory_order_relaxed);
+        m_bulkRunning = true;
+        m_bulkWorkersRemaining = qMin(BulkThumbnailWorkerCount, m_bulkTotal);
+        workerCount = m_bulkWorkersRemaining;
+    }
+
+    if (m_bulkTotal == 0) {
+        {
+            QMutexLocker locker(&m_mutex);
+            m_bulkRunning = false;
+        }
+        emit bulkProgress(0, 0, 0, 0, 0);
+        emit bulkFinished(0, 0, 0, 0, false);
+        return true;
+    }
+
+    for (int worker = 0; worker < workerCount; ++worker) {
+        m_bulkPool.start([this] { runBulkWorker(); });
+    }
+    return true;
+}
+
+void ThumbnailService::cancelGenerateAll()
+{
+    QMutexLocker locker(&m_mutex);
+    if (!m_bulkRunning) return;
+    m_bulkCancelRequested.store(true, std::memory_order_relaxed);
+    m_bulkQueue.clear();
+    m_generationChanged.wakeAll();
+}
+
+void ThumbnailService::runBulkWorker()
+{
+    while (true) {
+        QString videoPath;
+        QString thumbnailPath;
+        {
+            QMutexLocker locker(&m_mutex);
+            if (m_bulkCancelRequested.load(std::memory_order_relaxed)
+                || m_bulkQueue.isEmpty()) {
+                break;
+            }
+            videoPath = m_bulkQueue.dequeue();
+            thumbnailPath = cachedPath(videoPath);
+            while (m_generating.contains(thumbnailPath)
+                   && !m_bulkCancelRequested.load(std::memory_order_relaxed)) {
+                m_generationChanged.wait(&m_mutex, 100);
+            }
+            if (m_bulkCancelRequested.load(std::memory_order_relaxed)) break;
+            m_generating.insert(thumbnailPath);
+        }
+
+        bool skipped = isValidThumbnail(thumbnailPath);
+        bool succeeded = skipped;
+        bool wasCanceled = false;
+        QString error;
+        if (!skipped) {
+            if (!QDir().mkpath(thumbnailCacheDirectory())) {
+                error = QStringLiteral("Failed to create thumbnail cache");
+            } else {
+                succeeded = createThumbnail(videoPath, {120000, 0}, thumbnailPath, &error,
+                                            &m_bulkCancelRequested, &wasCanceled);
+            }
+        }
+
+        int completed = 0;
+        int total = 0;
+        int generated = 0;
+        int skippedCount = 0;
+        int failedCount = 0;
+        {
+            QMutexLocker locker(&m_mutex);
+            m_generating.remove(thumbnailPath);
+            m_generationChanged.wakeAll();
+            ++m_bulkCompleted;
+            if (skipped) {
+                ++m_bulkSkipped;
+            } else if (succeeded) {
+                ++m_bulkGenerated;
+            } else if (!wasCanceled) {
+                ++m_bulkFailed;
+            }
+            completed = m_bulkCompleted;
+            total = m_bulkTotal;
+            generated = m_bulkGenerated;
+            skippedCount = m_bulkSkipped;
+            failedCount = m_bulkFailed;
+        }
+
+        if (succeeded && !skipped) emit this->generated(videoPath, thumbnailPath);
+        if (!succeeded && !wasCanceled) emit failed(videoPath, error);
+        emit bulkProgress(completed, total, generated, skippedCount, failedCount);
+    }
+
+    int total = 0;
+    int generated = 0;
+    int skipped = 0;
+    int failed = 0;
+    bool canceled = false;
+    bool lastWorker = false;
+    {
+        QMutexLocker locker(&m_mutex);
+        --m_bulkWorkersRemaining;
+        lastWorker = m_bulkWorkersRemaining == 0;
+        if (lastWorker) {
+            total = m_bulkTotal;
+            generated = m_bulkGenerated;
+            skipped = m_bulkSkipped;
+            failed = m_bulkFailed;
+            canceled = m_bulkCancelRequested.load(std::memory_order_relaxed);
+            m_bulkRunning = false;
+            m_bulkQueue.clear();
+        }
+    }
+    if (lastWorker) emit bulkFinished(total, generated, skipped, failed, canceled);
+}
+
 void ThumbnailService::generate(const QString &videoPath)
 {
     const QString thumbnailPath = cachedPath(videoPath);
@@ -154,6 +326,7 @@ void ThumbnailService::generate(const QString &videoPath)
         const auto finish = [this, &videoPath] {
             QMutexLocker locker(&m_mutex);
             m_generating.remove(cachedPath(videoPath));
+            m_generationChanged.wakeAll();
         };
 
         if (!QDir().mkpath(thumbnailCacheDirectory())) {
@@ -204,6 +377,7 @@ void ThumbnailService::generateSamples(const QString &videoPath, qint64 duration
                 {
                     QMutexLocker locker(&m_mutex);
                     m_generating.remove(task.thumbnailPath);
+                    m_generationChanged.wakeAll();
                 }
                 emit sampleFailed(videoPath, task.index,
                                   QStringLiteral("Failed to create thumbnail cache"));
@@ -215,6 +389,7 @@ void ThumbnailService::generateSamples(const QString &videoPath, qint64 duration
             const auto finish = [this, thumbnailPath = task.thumbnailPath] {
                 QMutexLocker locker(&m_mutex);
                 m_generating.remove(thumbnailPath);
+                m_generationChanged.wakeAll();
             };
             if (isValidThumbnail(task.thumbnailPath)) {
                 finish();

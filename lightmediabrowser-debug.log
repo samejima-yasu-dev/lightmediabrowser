@@ -1,0 +1,95 @@
+Loaded media folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Video count query: 23038 rows in 0 ms
+Video page query: 100 rows in 0 ms; offset: 0
+Video page UI update: 100 rows queried; 94 rows displayed in 5 ms; loaded: 94 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 100
+Video page UI update: 100 rows queried; 70 rows displayed in 3 ms; loaded: 164 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Starting scan across all registered folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Scan traversal started: folders: 5 "VmRSS=unavailable VmHWM=unavailable"
+Media scan found 986 videos so far after folder "/home/yasutaka/ダウンロード"
+Media scan found 992 videos so far after folder "/home/yasutaka/ビデオ"
+Scan traversal progress: videos: 1000 directories: 656 pending directories: 549 elapsed ms: 36 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 2000 directories: 1427 pending directories: 5581 elapsed ms: 84 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 200
+Video page UI update: 100 rows queried; 88 rows displayed in 4 ms; loaded: 252 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 3000 directories: 2474 pending directories: 5581 elapsed ms: 123 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 300
+Video page UI update: 100 rows queried; 81 rows displayed in 5 ms; loaded: 333 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 4000 directories: 3483 pending directories: 5581 elapsed ms: 157 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 5000 directories: 4514 pending directories: 5581 elapsed ms: 190 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 400
+Video page UI update: 100 rows queried; 81 rows displayed in 4 ms; loaded: 414 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 500
+Scan traversal progress: videos: 6000 directories: 5501 pending directories: 5581 elapsed ms: 231 "VmRSS=unavailable VmHWM=unavailable"
+Video page UI update: 100 rows queried; 45 rows displayed in 2 ms; loaded: 459 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 600
+Video page UI update: 100 rows queried; 43 rows displayed in 3 ms; loaded: 502 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 7000 directories: 6815 pending directories: 5581 elapsed ms: 272 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 700
+Video page UI update: 100 rows queried; 64 rows displayed in 3 ms; loaded: 566 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 800
+Video page UI update: 100 rows queried; 22 rows displayed in 2 ms; loaded: 588 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 8000 directories: 8413 pending directories: 5581 elapsed ms: 326 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 0 ms; offset: 900
+Video page UI update: 100 rows queried; 38 rows displayed in 2 ms; loaded: 626 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Media scan found 8243 videos so far after folder "/run/media/yasutaka/16TBHDD/data"
+Video page query: 100 rows in 1 ms; offset: 1000
+Video page UI update: 100 rows queried; 14 rows displayed in 1 ms; loaded: 640 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1100
+Scan traversal progress: videos: 9000 directories: 9362 pending directories: 5581 elapsed ms: 374 "VmRSS=unavailable VmHWM=unavailable"
+Video page UI update: 100 rows queried; 12 rows displayed in 1 ms; loaded: 652 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1200
+Video page UI update: 100 rows queried; 41 rows displayed in 3 ms; loaded: 693 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 10000 directories: 10386 pending directories: 5581 elapsed ms: 409 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1300
+Video page UI update: 100 rows queried; 13 rows displayed in 2 ms; loaded: 706 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 11000 directories: 11382 pending directories: 5581 elapsed ms: 442 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1400
+Video page UI update: 100 rows queried; 35 rows displayed in 3 ms; loaded: 741 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1500
+Video page UI update: 100 rows queried; 11 rows displayed in 2 ms; loaded: 752 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 12000 directories: 12132 pending directories: 5581 elapsed ms: 491 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1600
+Video page UI update: 100 rows queried; 19 rows displayed in 2 ms; loaded: 771 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1700
+Video page UI update: 100 rows queried; 40 rows displayed in 3 ms; loaded: 811 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 13000 directories: 13127 pending directories: 5581 elapsed ms: 524 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1800
+Video page UI update: 100 rows queried; 63 rows displayed in 4 ms; loaded: 874 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 14000 directories: 14139 pending directories: 5581 elapsed ms: 556 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 1900
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 888 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 15000 directories: 15149 pending directories: 5581 elapsed ms: 588 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 2000
+Video page UI update: 100 rows queried; 24 rows displayed in 3 ms; loaded: 912 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 2100
+Video page UI update: 100 rows queried; 14 rows displayed in 2 ms; loaded: 926 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 16000 directories: 16168 pending directories: 5581 elapsed ms: 623 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 2200
+Video page UI update: 100 rows queried; 8 rows displayed in 2 ms; loaded: 934 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Scan traversal progress: videos: 17000 directories: 17154 pending directories: 5581 elapsed ms: 660 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 1 ms; offset: 2300
+Video page UI update: 100 rows queried; 6 rows displayed in 2 ms; loaded: 940 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 2 ms; offset: 2400
+Video page UI update: 100 rows queried; 1 rows displayed in 3 ms; loaded: 941 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 3 ms; offset: 2500
+Video page UI update: 100 rows queried; 2 rows displayed in 3 ms; loaded: 943 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Media scan found 17575 videos so far after folder "/run/media/yasutaka/ADATA3/nano-share"
+Total media scan found 17575 videos across all folders
+Scan traversal completed: videos: 17575 directories: 17887 max pending directories: 5581 elapsed ms: 727 complete: false errors: 1 "VmRSS=unavailable VmHWM=unavailable"
+Video page query: 100 rows in 2 ms; offset: 2600
+Video page UI update: 100 rows queried; 1 rows displayed in 3 ms; loaded: 944 of 23038 "VmRSS=unavailable VmHWM=unavailable"
+Media scan finished: 17575 videos in 727 ms; complete: false errors: QList("Folder is unavailable or unreadable: /run/media/yasutaka/16THDD2/data")
+Scan batch registration started: videos: 17575 previously registered: 0 "VmRSS=unavailable VmHWM=unavailable"
+Scan batch database registration completed: videos: 17575 elapsed ms: 115 "VmRSS=unavailable VmHWM=unavailable"
+Thumbnail requests dispatched: 1000 of 17575 outstanding: 425 "VmRSS=unavailable VmHWM=unavailable"
+QProcess: Cannot create pipe (Too many open files)
+QProcess: Cannot create pipe (Too many open files)
+
+(process:51175): GLib-ERROR **: 09:38:04.163: Creating pipes for GWakeup: ファイルを開きすぎです
+QProcess: Cannot create pipe (Too many open files)
+QProcess: Cannot create pipe (開かれたファイルが多すぎます)
+
+(process:51175): GLib-ERROR **: 09:38:04.163: Creating pipes for GWakeup: ファイルを開きすぎです
+QProcess: Cannot create pipe (開かれたファイルが多すぎます)
+QProcess: Cannot create pipe (開かれたファイルが多すぎます)

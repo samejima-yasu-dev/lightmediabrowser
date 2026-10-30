@@ -1,0 +1,3 @@
+Loaded media folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Starting scan across all registered folders: QList("/home/yasutaka/ダウンロード", "/run/media/yasutaka/16THDD2/data", "/home/yasutaka/ビデオ", "/run/media/yasutaka/16TBHDD/data", "/run/media/yasutaka/ADATA3/nano-share")
+Media scan incomplete: "Folder is unavailable or unreadable: /run/media/yasutaka/16THDD2/data"
