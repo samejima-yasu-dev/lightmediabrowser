@@ -26,6 +26,7 @@ if (-not (Test-Path -LiteralPath $deployTool -PathType Leaf)) {
 }
 
 $licenseDirectories = @(
+    $env:QT_LICENSE_DIR,
     (Join-Path $qtPath 'licenses'),
     (Join-Path $qtPath 'Licenses'),
     (Join-Path (Split-Path $qtPath -Parent) 'licenses'),
@@ -35,7 +36,8 @@ $licenseDirectories = @(
 )
 $qtLicenseFiles = @(
     foreach ($directory in $licenseDirectories) {
-        if (Test-Path -LiteralPath $directory -PathType Container) {
+        if (-not [string]::IsNullOrWhiteSpace($directory) -and
+            (Test-Path -LiteralPath $directory -PathType Container)) {
             Get-ChildItem -LiteralPath $directory -File -Recurse |
                 Where-Object { $_.Name -match '(?i)(license|copying|copyright|notice|lgpl|gpl|sqlite)' }
         }

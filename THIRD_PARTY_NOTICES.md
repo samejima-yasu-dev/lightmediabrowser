@@ -21,7 +21,10 @@ usr/share/doc/lightmediabrowser/third-party/
 
 Those package files are the authoritative notices for the binaries in the
 AppImage. Windows and macOS packages include Qt license texts from the deployed
-Qt distribution under `third-party-licenses/qt/`, together with this notice.
+Qt 6.8.3 open-source release under `third-party-licenses/qt/`, together with
+this notice. The LGPL 3.0 and GPL 3.0 texts are fetched from the matching
+`qt/qtbase` release tag during the build because the Qt installation action
+does not provide a license-text directory.
 The set of enabled codecs and linked components can affect applicable terms;
 verify the exact package build and contents before redistributing. The
 application icon and other visual assets should also be checked against their

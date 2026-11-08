@@ -44,6 +44,9 @@ if [[ ! -x "$executable" ]]; then
 fi
 
 license_directories=()
+if [[ -n "${QT_LICENSE_DIR:-}" && -d "$QT_LICENSE_DIR" ]]; then
+    license_directories+=("$QT_LICENSE_DIR")
+fi
 for candidate in \
     "$qt_root/licenses" \
     "$qt_root/Licenses" \
