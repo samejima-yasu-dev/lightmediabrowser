@@ -193,8 +193,7 @@ LightMediaBrowserは、あらゆるメディア機能を一つにまとめるこ
 
 * CMake 3.21以降
 * GCCやClangなどのC++20対応コンパイラ
-* Qt 6開発パッケージ
-* SQLite 3開発パッケージ
+* Qt 6開発パッケージ（Qt SQLとQSQLITEドライバーを含む）
 * 実行時に利用できる `ffmpeg` と `ffprobe`
 
 ### Ubuntu / Debian
@@ -206,9 +205,35 @@ sudo apt install \
   build-essential \
   cmake \
   qt6-base-dev \
-  libsqlite3-dev \
   ffmpeg
 ```
+
+---
+
+## Windows/macOS版のダウンロード
+
+`v*`タグのGitHub Releaseから、次のパッケージをダウンロードできます。
+
+* **Windows 10以降（x64）:** `LightMediaBrowser-windows-x64.zip`
+* **macOS 12 Monterey以降（Apple Silicon）:** `LightMediaBrowser-macos-arm64.dmg`
+* **macOS 12 Monterey以降（Intel）:** `LightMediaBrowser-macos-x86_64.dmg`
+
+通常のpushやPull Requestで作成されたビルドは、GitHub Actionsの該当実行ページから一時的な成果物としてダウンロードできます。
+
+Windows/macOS版にはQtの実行ファイルとQSQLITEドライバーを同梱していますが、ファイルサイズを抑えるため `ffmpeg` と `ffprobe` は含めていません。別途インストールし、`PATH`から実行できるようにしてください。macOSではHomebrewを使う場合、次のコマンドで導入できます。
+
+```bash
+brew install ffmpeg
+```
+
+導入後、`ffmpeg -version` と `ffprobe -version` が実行できることを確認してください。WindowsではFFmpegを入手し、実行ファイルがあるフォルダーを `PATH` に追加してからアプリを再起動してください。Finderから起動したmacOSアプリはHomebrewの `PATH` を引き継がない場合があります。Homebrew版FFmpegを使う場合は、Terminalから次のように起動してください。
+
+```sh
+PATH="$(brew --prefix)/bin:$PATH" \
+  "/Applications/LightMediaBrowser.app/Contents/MacOS/LightMediaBrowser"
+```
+
+配布パッケージにはインストールガイドが `README.md` として含まれます。パッケージはコード署名・公証されていないため、初回起動時にWindows SmartScreenやmacOS Gatekeeperの警告が表示される場合があります。
 
 ---
 
@@ -234,6 +259,20 @@ cmake --build build -j$(nproc)
 ```
 
 サムネイル生成と動画情報の取得には、`ffmpeg` と `ffprobe` が必要です。
+
+Windowsでは次のようにビルドできます。
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release --parallel
+```
+
+macOS 12以降向けにビルドする場合は、次のように最低OSバージョンを指定します。
+
+```bash
+cmake -S . -B build -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+cmake --build build --parallel
+```
 
 ---
 

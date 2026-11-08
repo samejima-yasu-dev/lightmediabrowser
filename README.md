@@ -200,8 +200,7 @@ To build and run LightMediaBrowser, you need:
 
 * CMake 3.21 or later
 * A C++20-compatible compiler such as GCC or Clang
-* Qt 6 development packages
-* SQLite 3 development packages
+* Qt 6 development packages, including Qt SQL and the QSQLITE driver
 * `ffmpeg` and `ffprobe` command-line tools at runtime
 
 ### Ubuntu / Debian
@@ -213,9 +212,35 @@ sudo apt install \
   build-essential \
   cmake \
   qt6-base-dev \
-  libsqlite3-dev \
   ffmpeg
 ```
+
+---
+
+## Windows and macOS Downloads
+
+Download these packages from a GitHub Release created from a `v*` tag:
+
+* **Windows 10 or later (x64):** `LightMediaBrowser-windows-x64.zip`
+* **macOS 12 Monterey or later (Apple Silicon):** `LightMediaBrowser-macos-arm64.dmg`
+* **macOS 12 Monterey or later (Intel):** `LightMediaBrowser-macos-x86_64.dmg`
+
+Builds created for regular pushes and pull requests are available as temporary artifacts from the corresponding GitHub Actions run.
+
+The Windows and macOS packages include the Qt runtime and QSQLITE driver. To keep package sizes smaller, they do not include `ffmpeg` or `ffprobe`; install both separately and make them available on `PATH`. On macOS, you can install them with Homebrew:
+
+```bash
+brew install ffmpeg
+```
+
+After installation, verify that `ffmpeg -version` and `ffprobe -version` work. On Windows, install FFmpeg, add the directory containing its executables to `PATH`, and restart the application. macOS apps launched from Finder may not inherit Homebrew's `PATH`; to use Homebrew FFmpeg, launch the app from Terminal with:
+
+```sh
+PATH="$(brew --prefix)/bin:$PATH" \
+  "/Applications/LightMediaBrowser.app/Contents/MacOS/LightMediaBrowser"
+```
+
+The packages include an installation guide as `README.md`. They are not code-signed or notarized. Windows SmartScreen or macOS Gatekeeper may show a warning the first time you launch the application.
 
 ---
 
@@ -247,6 +272,20 @@ Run:
 ```
 
 Thumbnail generation and video metadata retrieval require `ffmpeg` and `ffprobe` to be available at runtime.
+
+On Windows, build with:
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release --parallel
+```
+
+To build on macOS with a minimum deployment target of macOS 12:
+
+```bash
+cmake -S . -B build -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+cmake --build build --parallel
+```
 
 ---
 

@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Concurrent Network)
-find_package(SQLite3 REQUIRED)
 
 include(CTest)
 if(BUILD_TESTING)
@@ -31,7 +30,7 @@ if(BUILD_TESTING)
         resources/resources.qrc
     )
     target_include_directories(database_test PRIVATE src)
-    target_link_libraries(database_test PRIVATE Qt6::Core Qt6::Sql Qt6::Test SQLite::SQLite3)
+    target_link_libraries(database_test PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME database_test COMMAND database_test)
 
     add_executable(media_scanner_test
@@ -82,9 +81,17 @@ add_executable(lightmediabrowser
 )
 
 target_include_directories(lightmediabrowser PRIVATE src)
-target_link_libraries(lightmediabrowser PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Concurrent Qt6::Network SQLite::SQLite3)
+target_link_libraries(lightmediabrowser PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Concurrent Qt6::Network)
 
-install(TARGETS lightmediabrowser RUNTIME DESTINATION bin)
+if(APPLE)
+    set_target_properties(lightmediabrowser PROPERTIES
+        MACOSX_BUNDLE TRUE
+        OUTPUT_NAME LightMediaBrowser
+    )
+    install(TARGETS lightmediabrowser BUNDLE DESTINATION .)
+else()
+    install(TARGETS lightmediabrowser RUNTIME DESTINATION bin)
+endif()
 install(FILES resources/lightmediabrowser.desktop DESTINATION share/applications)
 install(FILES resources/lightmediabrowser.png DESTINATION share/icons/hicolor/256x256/apps)
 install(FILES LICENSE THIRD_PARTY_NOTICES.md DESTINATION share/doc/lightmediabrowser)
