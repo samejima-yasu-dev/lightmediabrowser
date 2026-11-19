@@ -14,6 +14,7 @@ private slots:
     void initTestCase();
     void batchUpsertAddsAndUpdatesVideos();
     void batchUpsertRollsBackWhenAnyVideoFails();
+    void duplicateFilterMatchesFileSizeOrFileName();
 };
 
 void DatabaseTest::initTestCase()
@@ -91,6 +92,55 @@ void DatabaseTest::batchUpsertRollsBackWhenAnyVideoFails()
     QVERIFY(!database.upsertVideos({valid, invalid}, &error));
     QVERIFY(!error.isEmpty());
     QCOMPARE(database.countVideosLight(marker), 0);
+}
+
+void DatabaseTest::duplicateFilterMatchesFileSizeOrFileName()
+{
+    Database database;
+    QString error;
+    QVERIFY2(database.open(&error), qPrintable(error));
+
+    QTemporaryDir temporaryDirectory;
+    QVERIFY(temporaryDirectory.isValid());
+    const QString marker = QStringLiteral("duplicates-%1").arg(
+        QUuid::createUuid().toString(QUuid::WithoutBraces));
+    bool sizeOk = false;
+    const qint64 uniqueSize = QUuid::createUuid().toString(QUuid::Id128)
+                                  .left(15).toLongLong(&sizeOk, 16);
+    QVERIFY(sizeOk);
+
+    Video sameSizeFirst;
+    sameSizeFirst.filePath = temporaryDirectory.filePath(QStringLiteral("same-size-first.mp4"));
+    sameSizeFirst.fileName = marker + QStringLiteral("-first.mp4");
+    sameSizeFirst.fileSize = uniqueSize;
+    sameSizeFirst.note = marker;
+
+    Video sameSizeSecond;
+    sameSizeSecond.filePath = temporaryDirectory.filePath(QStringLiteral("same-size-second.mp4"));
+    sameSizeSecond.fileName = marker + QStringLiteral("-second.mp4");
+    sameSizeSecond.fileSize = uniqueSize;
+    sameSizeSecond.note = marker;
+
+    Video sameNameDifferentSize;
+    sameNameDifferentSize.filePath = temporaryDirectory.filePath(QStringLiteral("same-name.mp4"));
+    sameNameDifferentSize.fileName = marker + QStringLiteral("-first.mp4");
+    sameNameDifferentSize.fileSize = uniqueSize + 1;
+    sameNameDifferentSize.note = marker;
+
+    Video unique;
+    unique.filePath = temporaryDirectory.filePath(QStringLiteral("unique.mp4"));
+    unique.fileName = marker + QStringLiteral("-unique.mp4");
+    unique.fileSize = uniqueSize + 2;
+    unique.note = marker;
+
+    QVERIFY2(database.upsertVideos(
+                 {sameSizeFirst, sameSizeSecond, sameNameDifferentSize, unique}, &error),
+             qPrintable(error));
+
+    const QList<VideoLightItem> duplicates = database.searchVideosLight(
+        marker, 0, false, 0, true);
+    QCOMPARE(duplicates.size(), 3);
+    QCOMPARE(database.countVideosLight(marker, 0, false, 0, true), 3);
 }
 
 QTEST_GUILESS_MAIN(DatabaseTest)

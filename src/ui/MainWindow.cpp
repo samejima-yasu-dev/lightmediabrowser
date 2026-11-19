@@ -196,10 +196,10 @@ void MainWindow::buildUi()
 
     m_duplicateFilter = new QComboBox(this);
     m_duplicateFilter->addItem(QStringLiteral("All"), false);
-    m_duplicateFilter->addItem(QStringLiteral("Same-size candidates"), true);
+    m_duplicateFilter->addItem(QStringLiteral("Same size or filename"), true);
     m_duplicateFilter->setToolTip(QStringLiteral(
-        "Show files whose size matches another library file, even if the filename changed. "
-        "Matching sizes do not confirm identical contents."));
+        "Show files whose size or filename matches another library file. "
+        "Matching either value does not confirm identical contents."));
     toolbar->addWidget(m_duplicateFilter);
 
     toolbar->addSeparator();
