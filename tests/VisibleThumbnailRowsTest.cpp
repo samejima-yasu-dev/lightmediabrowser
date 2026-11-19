@@ -4,10 +4,12 @@
 #include <QListWidget>
 #include <QMainWindow>
 #include <QPainter>
+#include <QScrollBar>
 #include <QSplitter>
 #include <QStyleFactory>
 #include <QToolBar>
 #include <QTreeWidget>
+#include <QWheelEvent>
 #include <QtTest>
 
 class VisibleThumbnailRowsTest : public QObject
@@ -17,6 +19,8 @@ class VisibleThumbnailRowsTest : public QObject
 private slots:
     void excludesRowsOutsideViewport();
     void gridHeightFitsThumbnailAndTwoTextLines();
+    void mouseWheelMovesLessThanOneThumbnailRow();
+    void keyboardNavigationStillChangesTheCurrentVideo();
     void displaysThumbnailBottomEdge();
     void itemGeometryRemainsValidWhenThumbnailArrivesAfterLayout();
 };
@@ -42,6 +46,56 @@ void VisibleThumbnailRowsTest::gridHeightFitsThumbnailAndTwoTextLines()
 
     const QSize gridSize = videoListGridSize(iconSize, lineHeight);
     QVERIFY(gridSize.height() >= iconSize.height() + 2 * lineHeight + verticalInsetsAndSpacing);
+}
+
+void VisibleThumbnailRowsTest::mouseWheelMovesLessThanOneThumbnailRow()
+{
+    QListWidget list;
+    list.setViewMode(QListView::IconMode);
+    list.setResizeMode(QListView::Adjust);
+    list.setMovement(QListView::Static);
+    list.setUniformItemSizes(true);
+    list.setIconSize(QSize(200, 112));
+    const QSize gridSize = videoListGridSize(list.iconSize(), list.fontMetrics().height());
+    list.setGridSize(gridSize);
+    configureVideoListScrolling(list);
+    list.resize(900, 600);
+    for (int index = 0; index < 1000; ++index) {
+        new QListWidgetItem(QStringLiteral("video-%1.mp4").arg(index), &list);
+    }
+
+    list.show();
+    QTRY_VERIFY(list.verticalScrollBar()->maximum() > 0);
+    const int initialScrollPosition = list.verticalScrollBar()->value();
+    const QPointF position = list.viewport()->rect().center();
+    QWheelEvent wheelEvent(position, list.viewport()->mapToGlobal(position.toPoint()),
+                           QPoint(), QPoint(0, -1200), Qt::NoButton, Qt::NoModifier,
+                           Qt::ScrollUpdate, false);
+    QApplication::sendEvent(list.viewport(), &wheelEvent);
+
+    QVERIFY(list.verticalScrollBar()->value() > initialScrollPosition);
+    QVERIFY(list.verticalScrollBar()->value() - initialScrollPosition < gridSize.height());
+}
+
+void VisibleThumbnailRowsTest::keyboardNavigationStillChangesTheCurrentVideo()
+{
+    QListWidget list;
+    list.setViewMode(QListView::IconMode);
+    list.setResizeMode(QListView::Adjust);
+    list.setMovement(QListView::Static);
+    list.setIconSize(QSize(200, 112));
+    list.setGridSize(videoListGridSize(list.iconSize(), list.fontMetrics().height()));
+    configureVideoListScrolling(list);
+    list.resize(900, 600);
+    for (int index = 0; index < 20; ++index) {
+        new QListWidgetItem(QStringLiteral("video-%1.mp4").arg(index), &list);
+    }
+
+    list.show();
+    list.setCurrentRow(0);
+    QTest::keyClick(&list, Qt::Key_Down);
+
+    QVERIFY(list.currentRow() > 0);
 }
 
 void VisibleThumbnailRowsTest::displaysThumbnailBottomEdge()

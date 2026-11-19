@@ -288,6 +288,7 @@ void MainWindow::buildUi()
     m_videoList->setGridSize(videoGridSize);
     m_videoList->setMinimumHeight(videoListMinimumHeight(videoGridSize));
     m_videoList->setSpacing(12);
+    configureVideoListScrolling(*m_videoList);
     m_videoList->setContextMenuPolicy(Qt::CustomContextMenu);
     auto *detailsScroll = new QScrollArea(splitter);
     detailsScroll->setObjectName(QStringLiteral("detailsScroll"));
