@@ -1,5 +1,7 @@
 # LightMediaBrowser
 
+[English](README.md) | [日本語](README.jp.md)
+
 **LightMediaBrowserは、大量のローカル動画を整理・閲覧するための、高速で軽量なローカルファーストアプリケーションです。**
 
 <img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/880624bd-9cc3-43e8-8ed3-412a1a702df6" />
@@ -57,9 +59,9 @@ LightMediaBrowserは、動画コレクションを管理するための軽量な
 
 * ファイル名や保存済みの情報から動画を検索
 * お気に入り、再生回数、タグなどで絞り込み
-* ファイルサイズが同じ動画を候補として表示
+* ファイルサイズまたはファイル名が一致する動画を候補として表示
 
-同じファイルサイズであることは、動画の内容が同一であることを示すものではありません。
+ファイルサイズまたはファイル名が一致しても、動画の内容が同一であるとは限りません。
 
 ### タグと整理
 
@@ -210,13 +212,14 @@ sudo apt install \
 
 ---
 
-## Windows/macOS版のダウンロード
+## Windows/macOS/Linux版のダウンロード
 
 `v*`タグのGitHub Releaseから、次のパッケージをダウンロードできます。
 
 * **Windows 10以降（x64）:** `LightMediaBrowser-windows-x64.zip`
 * **macOS 12 Monterey以降（Apple Silicon）:** `LightMediaBrowser-macos-arm64.dmg`
 * **macOS 12 Monterey以降（Intel）:** `LightMediaBrowser-macos-x86_64.dmg`
+* **Linux（x86_64）:** AppImage
 
 通常のpushやPull Requestで作成されたビルドは、GitHub Actionsの該当実行ページから一時的な成果物としてダウンロードできます。
 

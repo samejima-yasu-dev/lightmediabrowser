@@ -1,5 +1,7 @@
 # LightMediaBrowser
 
+[English](README.md) | [日本語](README.jp.md)
+
 **LightMediaBrowser is a fast, lightweight, local-first application for organizing and browsing large collections of local video files.**
 
 <img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/880624bd-9cc3-43e8-8ed3-412a1a702df6" />
@@ -59,9 +61,9 @@ The application focuses on **managing your video collection**, rather than tryin
 * Filter videos
 * Find videos by filename and other stored information
 * Filter by favorites, playback count, and tags
-* Find same-size video candidates
+* Find video candidates with a matching file size or filename
 
-Matching file sizes do not confirm that video contents are identical.
+A matching file size or filename does not confirm that video contents are identical.
 
 ### Tags & Organization
 
@@ -217,13 +219,14 @@ sudo apt install \
 
 ---
 
-## Windows and macOS Downloads
+## Windows, macOS, and Linux Downloads
 
 Download these packages from a GitHub Release created from a `v*` tag:
 
 * **Windows 10 or later (x64):** `LightMediaBrowser-windows-x64.zip`
 * **macOS 12 Monterey or later (Apple Silicon):** `LightMediaBrowser-macos-arm64.dmg`
 * **macOS 12 Monterey or later (Intel):** `LightMediaBrowser-macos-x86_64.dmg`
+* **Linux (x86_64):** AppImage
 
 Builds created for regular pushes and pull requests are available as temporary artifacts from the corresponding GitHub Actions run.
 
