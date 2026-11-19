@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://samejima-yasu-dev.github.io/lightmediabrowser/sitemap.xml
