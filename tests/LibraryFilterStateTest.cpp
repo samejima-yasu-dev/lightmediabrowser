@@ -3,25 +3,23 @@
 #include <QCoreApplication>
 #include <QtTest>
 
-void defaultsAndNormalizedSortKey()
+bool defaultsAndNormalizedSortKey()
 {
     LibraryFilterState state;
-    QCOMPARE(state.tagId, qint64(0));
-    QVERIFY(!state.favoritesOnly);
-    QVERIFY(!state.duplicatesOnly);
-    QCOMPARE(state.minPlayCount, 0);
-    QCOMPARE(state.normalizedSortKey(), QStringLiteral("name"));
+    if (state.tagId != 0 || state.favoritesOnly || state.duplicatesOnly ||
+        state.minPlayCount != 0 || state.normalizedSortKey() != QStringLiteral("name")) {
+        return false;
+    }
 
     state.sortKey = QStringLiteral(" newest ");
-    QCOMPARE(state.normalizedSortKey(), QStringLiteral("newest"));
+    if (state.normalizedSortKey() != QStringLiteral("newest")) return false;
 
     state.sortKey = QStringLiteral("unknown");
-    QCOMPARE(state.normalizedSortKey(), QStringLiteral("name"));
+    return state.normalizedSortKey() == QStringLiteral("name");
 }
 
 int main(int argc, char **argv)
 {
     QCoreApplication application(argc, argv);
-    defaultsAndNormalizedSortKey();
-    return 0;
+    return defaultsAndNormalizedSortKey() ? 0 : 1;
 }

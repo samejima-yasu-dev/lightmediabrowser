@@ -505,7 +505,7 @@ void MainWindow::scanFolder()
         statusBar()->showMessage(QStringLiteral("No media folders registered. Use Add Folder first."));
         return;
     }
-    qInfo() << "Starting scan across all registered folders:" << m_folders;
+    qInfo() << "Starting scan across" << m_folders.size() << "registered folders";
     statusBar()->showMessage(QStringLiteral("Scanning all folders..."));
     m_scanner.scanFolders(m_folders);
 }
@@ -814,7 +814,7 @@ void MainWindow::showScanResult(int count, bool complete, const QStringList &err
     if (complete) {
         removeMissingVideosFromAvailableFolders();
     } else {
-        for (const QString &message : errors) qWarning() << "Media scan incomplete:" << message;
+        qWarning() << "Media scan incomplete:" << errors.size() << "error(s)";
     }
     refreshVideos();
     refreshTags();
@@ -868,13 +868,13 @@ void MainWindow::removeMissingVideosFromAvailableFolders()
 
         QString error;
         if (!m_database.deleteVideo(video.filePath, &error)) {
-            qWarning() << "Could not remove missing video record:" << video.filePath << error;
+            qWarning() << "Could not remove missing video record:" << error;
             continue;
         }
 
         const QString thumbnailPath = ThumbnailService::cachedPath(video.filePath);
         if (QFileInfo::exists(thumbnailPath) && !QFile::remove(thumbnailPath)) {
-            qWarning() << "Could not remove thumbnail for missing video:" << thumbnailPath;
+            qWarning() << "Could not remove thumbnail for missing video";
         }
         m_thumbnailPaths.remove(video.filePath);
     }
@@ -904,7 +904,7 @@ void MainWindow::loadFolders()
         m_currentFolder = m_folders.first();
         m_folderSelector->setCurrentIndex(0);
     }
-    qInfo() << "Loaded media folders:" << m_folders;
+    qInfo() << "Loaded media folder count:" << m_folders.size();
 }
 
 void MainWindow::saveFolders() const

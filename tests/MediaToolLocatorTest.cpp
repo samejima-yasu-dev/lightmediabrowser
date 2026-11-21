@@ -3,29 +3,28 @@
 #include <QCoreApplication>
 #include <QtTest>
 
-void missingMediaToolsMessageIsActionable()
+bool missingMediaToolsMessageIsActionable()
 {
     MediaToolAvailability availability;
     availability.ffmpegAvailable = false;
     availability.ffprobeAvailable = false;
 
     const QString message = missingMediaToolsMessage(availability);
-    QVERIFY(message.contains(QStringLiteral("ffmpeg")));
-    QVERIFY(message.contains(QStringLiteral("ffprobe")));
+    return message.contains(QStringLiteral("ffmpeg")) &&
+           message.contains(QStringLiteral("ffprobe"));
 }
 
-void presentToolsProduceNoErrorMessage()
+bool presentToolsProduceNoErrorMessage()
 {
     MediaToolAvailability availability;
     availability.ffmpegAvailable = true;
     availability.ffprobeAvailable = true;
-    QVERIFY(missingMediaToolsMessage(availability).isEmpty());
+    return missingMediaToolsMessage(availability).isEmpty();
 }
 
 int main(int argc, char **argv)
 {
     QCoreApplication application(argc, argv);
-    missingMediaToolsMessageIsActionable();
-    presentToolsProduceNoErrorMessage();
-    return 0;
+    if (!missingMediaToolsMessageIsActionable()) return 1;
+    return presentToolsProduceNoErrorMessage() ? 0 : 1;
 }

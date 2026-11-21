@@ -53,6 +53,38 @@ bool Database::open(QString *error, bool *created)
     pragmas.finish();
     if (!migrate(error)) return false;
 
+    const QStringList requiredTables = {
+        QStringLiteral("videos"), QStringLiteral("categories"),
+        QStringLiteral("tags"), QStringLiteral("video_tags")
+    };
+    for (const QString &tableName : requiredTables) {
+        QSqlQuery tableQuery(m_database);
+        tableQuery.prepare(QStringLiteral("SELECT 1 FROM sqlite_master WHERE type='table' AND name=:name"));
+        tableQuery.bindValue(QStringLiteral(":name"), tableName);
+        if (!tableQuery.exec() || !tableQuery.next()) {
+            if (error) *error = QStringLiteral("Database schema is incomplete: missing table %1").arg(tableName);
+            return false;
+        }
+    }
+
+    const QStringList requiredVideoColumns = {
+        QStringLiteral("file_path"), QStringLiteral("file_name"), QStringLiteral("file_size"),
+        QStringLiteral("duration_ms"), QStringLiteral("is_favorite"), QStringLiteral("play_count")
+    };
+    QSqlQuery columnQuery(m_database);
+    if (!columnQuery.exec(QStringLiteral("PRAGMA table_info(videos)"))) {
+        if (error) *error = QStringLiteral("Database schema is incomplete: could not inspect videos");
+        return false;
+    }
+    QStringList videoColumns;
+    while (columnQuery.next()) videoColumns.append(columnQuery.value(1).toString());
+    for (const QString &columnName : requiredVideoColumns) {
+        if (!videoColumns.contains(columnName)) {
+            if (error) *error = QStringLiteral("Database schema is incomplete: missing videos.%1").arg(columnName);
+            return false;
+        }
+    }
+
     if (created) *created = !databaseAlreadyExists;
     return true;
 }
