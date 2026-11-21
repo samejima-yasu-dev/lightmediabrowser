@@ -13,6 +13,7 @@ class MediaScannerTest : public QObject
 
 private slots:
     void scanEmitsAllVideosInOneBatchBeforeFinishing();
+    void missingRootLeavesScanIncomplete();
 };
 
 void MediaScannerTest::scanEmitsAllVideosInOneBatchBeforeFinishing()
@@ -54,6 +55,34 @@ void MediaScannerTest::scanEmitsAllVideosInOneBatchBeforeFinishing()
     QCOMPARE(finishedCount, 2);
     QVERIFY(scanComplete);
     QCOMPARE(discoveredPaths, QSet<QString>({firstPath, secondPath}));
+}
+
+void MediaScannerTest::missingRootLeavesScanIncomplete()
+{
+    QTemporaryDir temporaryDirectory;
+    QVERIFY(temporaryDirectory.isValid());
+    const QString missingRoot = temporaryDirectory.filePath(QStringLiteral("missing-folder"));
+
+    MediaScanner scanner;
+    bool finished = false;
+    bool complete = true;
+    int discoveredCount = -1;
+    QStringList errors;
+    connect(&scanner, &MediaScanner::videosDiscovered, &scanner,
+            [&](const QList<Video> &videos) { discoveredCount = videos.size(); });
+    connect(&scanner, &MediaScanner::finished, &scanner,
+            [&](int, bool scanComplete, const QStringList &scanErrors) {
+        finished = true;
+        complete = scanComplete;
+        errors = scanErrors;
+    });
+
+    scanner.scan(missingRoot);
+    QTRY_VERIFY_WITH_TIMEOUT(finished, 5000);
+
+    QVERIFY(!complete);
+    QVERIFY(errors.size() >= 1);
+    QCOMPARE(discoveredCount, 0);
 }
 
 QTEST_GUILESS_MAIN(MediaScannerTest)

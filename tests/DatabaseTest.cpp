@@ -4,6 +4,10 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QUuid>
+#include <QDir>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 #include <QtTest>
 
 class DatabaseTest : public QObject
@@ -15,6 +19,8 @@ private slots:
     void batchUpsertAddsAndUpdatesVideos();
     void batchUpsertRollsBackWhenAnyVideoFails();
     void duplicateFilterMatchesFileSizeOrFileName();
+    void futureSchemaVersionIsRejected();
+    void initialSchemaMigratesToCurrentVersion();
 };
 
 void DatabaseTest::initTestCase()
@@ -92,6 +98,75 @@ void DatabaseTest::batchUpsertRollsBackWhenAnyVideoFails()
     QVERIFY(!database.upsertVideos({valid, invalid}, &error));
     QVERIFY(!error.isEmpty());
     QCOMPARE(database.countVideosLight(marker), 0);
+}
+
+void DatabaseTest::futureSchemaVersionIsRejected()
+{
+    const QString previousName = QCoreApplication::applicationName();
+    QCoreApplication::setApplicationName(QStringLiteral("LightMediaBrowserFutureSchemaTest"));
+
+    const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QVERIFY(QDir().mkpath(dataDir));
+    const QString databasePath = dataDir + QStringLiteral("/database.sqlite");
+
+    const QString connectionName = QStringLiteral("future-schema-test");
+    QSqlDatabase raw = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
+    raw.setDatabaseName(databasePath);
+    QVERIFY(raw.open());
+    QSqlQuery query(raw);
+    QVERIFY(query.exec(QStringLiteral("PRAGMA user_version = 6")));
+    raw.close();
+    QSqlDatabase::removeDatabase(connectionName);
+
+    Database database;
+    QString error;
+    QVERIFY(!database.open(&error));
+    QVERIFY(error.contains(QStringLiteral("newer than this application supports")));
+    QCoreApplication::setApplicationName(previousName);
+}
+
+void DatabaseTest::initialSchemaMigratesToCurrentVersion()
+{
+    const QString previousName = QCoreApplication::applicationName();
+    QCoreApplication::setApplicationName(QStringLiteral("LightMediaBrowserMigrationTest"));
+
+    const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QVERIFY(QDir().mkpath(dataDir));
+    const QString databasePath = dataDir + QStringLiteral("/database.sqlite");
+
+    const QString connectionName = QStringLiteral("initial-schema-test");
+    QSqlDatabase raw = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
+    raw.setDatabaseName(databasePath);
+    QVERIFY(raw.open());
+    QSqlQuery query(raw);
+    QVERIFY(query.exec(QStringLiteral("PRAGMA user_version = 0")));
+    raw.close();
+    QSqlDatabase::removeDatabase(connectionName);
+
+    Database database;
+    QString error;
+    QVERIFY2(database.open(&error), qPrintable(error));
+
+    const QString verifyConnectionName = QStringLiteral("verify-migration-test");
+    QSqlDatabase verify = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), verifyConnectionName);
+    verify.setDatabaseName(databasePath);
+    QVERIFY(verify.open());
+    QSqlQuery version(verify);
+    QVERIFY(version.exec(QStringLiteral("PRAGMA user_version")));
+    QVERIFY(version.next());
+    QCOMPARE(version.value(0).toInt(), 5);
+
+    QSqlQuery tables(verify);
+    QVERIFY(tables.exec(QStringLiteral("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('videos','categories','tags','video_tags')")));
+    QStringList tableNames;
+    while (tables.next()) tableNames.append(tables.value(0).toString());
+    QVERIFY(tableNames.contains(QStringLiteral("videos")));
+    QVERIFY(tableNames.contains(QStringLiteral("categories")));
+    QVERIFY(tableNames.contains(QStringLiteral("tags")));
+    QVERIFY(tableNames.contains(QStringLiteral("video_tags")));
+    verify.close();
+    QSqlDatabase::removeDatabase(verifyConnectionName);
+    QCoreApplication::setApplicationName(previousName);
 }
 
 void DatabaseTest::duplicateFilterMatchesFileSizeOrFileName()
