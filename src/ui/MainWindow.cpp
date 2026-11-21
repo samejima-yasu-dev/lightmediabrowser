@@ -3,6 +3,7 @@
 #include "ui/VideoListLayout.h"
 #include "ui/TagManager.h"
 #include "media/VideoMetadataProbe.h"
+#include "media/MediaToolLocator.h"
 
 #include <QAction>
 #include <QComboBox>
@@ -60,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         }
     }
     buildUi();
+    const QString mediaToolsMessage = missingMediaToolsMessage(locateMediaTools());
+    if (!mediaToolsMessage.isEmpty()) {
+        statusBar()->showMessage(mediaToolsMessage, 10000);
+    }
     m_tagManager = new TagManager(&m_database, m_tagTree, this);
     connect(m_tagManager, &TagManager::tagSelectionChanged, this,
             [this](qint64 tagId) { m_selectedTagId = tagId; refreshVideos(); });

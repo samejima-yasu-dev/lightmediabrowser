@@ -1,4 +1,5 @@
 #include "media/VideoMetadataProbe.h"
+#include "media/MediaToolLocator.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -12,12 +13,17 @@ VideoMetadataProbeResult probeVideoMetadata(const Video &video)
     result.video = video;
 
     QProcess probe;
-    probe.start(QStringLiteral("ffprobe"), {
+    const MediaToolAvailability tools = locateMediaTools();
+    probe.setProgram(tools.ffprobeAvailable
+        ? tools.ffprobePath
+        : QStringLiteral("ffprobe"));
+    probe.setArguments({
         QStringLiteral("-v"), QStringLiteral("quiet"),
         QStringLiteral("-print_format"), QStringLiteral("json"),
         QStringLiteral("-show_format"), QStringLiteral("-show_streams"),
         video.filePath
     });
+    probe.start();
     if (!probe.waitForStarted(1000)) {
         result.error = QStringLiteral("Could not start ffprobe: %1").arg(probe.errorString());
         return result;

@@ -53,6 +53,15 @@ if(BUILD_TESTING)
     target_link_libraries(video_metadata_probe_test PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME video_metadata_probe_test COMMAND video_metadata_probe_test)
 
+    add_executable(media_tool_locator_test
+        tests/MediaToolLocatorTest.cpp
+        src/media/MediaToolLocator.h
+        src/media/MediaToolLocator.cpp
+    )
+    target_include_directories(media_tool_locator_test PRIVATE src)
+    target_link_libraries(media_tool_locator_test PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME media_tool_locator_test COMMAND media_tool_locator_test)
+
     add_executable(library_filter_state_test
         tests/LibraryFilterStateTest.cpp
         src/ui/LibraryFilterState.h
@@ -84,6 +93,8 @@ if(BUILD_TESTING)
     add_executable(mainwindow_smoke_test
         tests/MainWindowSmokeTest.cpp
         src/domain/Video.h
+        src/media/MediaToolLocator.h
+        src/media/MediaToolLocator.cpp
         src/media/ThumbnailService.h
         src/media/ThumbnailService.cpp
         src/media/VideoMetadataProbe.h
@@ -110,6 +121,8 @@ endif()
 add_executable(lightmediabrowser
     src/main.cpp
     src/domain/Video.h
+    src/media/MediaToolLocator.h
+    src/media/MediaToolLocator.cpp
     src/media/ThumbnailService.h
     src/media/ThumbnailService.cpp
     src/media/VideoMetadataProbe.h

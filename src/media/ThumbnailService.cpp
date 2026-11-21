@@ -1,4 +1,5 @@
 #include "media/ThumbnailService.h"
+#include "media/MediaToolLocator.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -44,7 +45,10 @@ bool createThumbnail(const QString &videoPath, const QList<qint64> &timestampsMs
     bool succeeded = false;
     for (const qint64 timestampMs : timestampsMs) {
         QProcess process;
-        process.setProgram(QStringLiteral("ffmpeg"));
+        const MediaToolAvailability tools = locateMediaTools();
+        process.setProgram(tools.ffmpegAvailable
+            ? tools.ffmpegPath
+            : QStringLiteral("ffmpeg"));
         process.setArguments({
             QStringLiteral("-hide_banner"),
             QStringLiteral("-loglevel"), QStringLiteral("error"),
