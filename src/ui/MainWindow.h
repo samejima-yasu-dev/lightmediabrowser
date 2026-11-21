@@ -9,6 +9,7 @@
 #include <QList>
 #include <QSet>
 #include <QStringList>
+#include "ui/LibraryFilterState.h"
 
 class QLineEdit;
 class QAction;
@@ -54,6 +55,7 @@ private:
     void loadMoreVideos();
     void generateVisibleThumbnails();
     void removeMissingVideosFromAvailableFolders();
+    LibraryFilterState currentLibraryFilterState() const;
     QString trText(const QString &key) const;
 
     Database m_database;
@@ -90,4 +92,5 @@ private:
     quint64 m_listingGeneration = 0;
     const int m_pageSize = 100;
     bool m_databaseReady = false;
+    LibraryFilterState m_filterState;
 };

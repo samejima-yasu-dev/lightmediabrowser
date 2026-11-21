@@ -497,6 +497,18 @@ void MainWindow::scanFolder()
     m_scanner.scanFolders(m_folders);
 }
 
+LibraryFilterState MainWindow::currentLibraryFilterState() const
+{
+    LibraryFilterState state;
+    state.query = m_search ? m_search->text() : QString();
+    state.tagId = m_selectedTagId;
+    state.favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
+    state.duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
+    state.minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
+    state.sortKey = m_sortSelector ? m_sortSelector->currentData().toString() : QStringLiteral("name");
+    return state;
+}
+
 void MainWindow::refreshVideos()
 {
     m_videoList->clear();
@@ -508,12 +520,10 @@ void MainWindow::refreshVideos()
     ++m_listingGeneration;
     if (!m_databaseReady) return;
 
-    const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
-    const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
-    const QString query = m_search ? m_search->text() : QString();
-    const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
-    m_totalVideoCount = m_database.countVideosLight(query, m_selectedTagId, favoritesOnly,
-                                                     minPlayCount, duplicatesOnly);
+    m_filterState = currentLibraryFilterState();
+    m_totalVideoCount = m_database.countVideosLight(
+        m_filterState.query, m_filterState.tagId, m_filterState.favoritesOnly,
+        m_filterState.minPlayCount, m_filterState.duplicatesOnly);
     loadMoreVideos();
 }
 
@@ -521,15 +531,11 @@ void MainWindow::loadMoreVideos()
 {
     if (!m_databaseReady || m_nextVideoOffset >= m_totalVideoCount) return;
 
-    const bool favoritesOnly = m_libraryFilter && m_libraryFilter->currentData().toBool();
-    const bool duplicatesOnly = m_duplicateFilter && m_duplicateFilter->currentData().toBool();
-    const int minPlayCount = m_minPlayCount ? m_minPlayCount->value() : 0;
-    const QString query = m_search ? m_search->text() : QString();
-    const QString sortKey = m_sortSelector ? m_sortSelector->currentData().toString() : QStringLiteral("name");
     const int targetCount = m_loadedVideoCount + m_pageSize;
     const QList<VideoLightItem> page = m_database.searchVideosLight(
-        query, m_selectedTagId, favoritesOnly, minPlayCount, duplicatesOnly,
-        sortKey, m_pageSize, m_nextVideoOffset);
+        m_filterState.query, m_filterState.tagId, m_filterState.favoritesOnly,
+        m_filterState.minPlayCount, m_filterState.duplicatesOnly,
+        m_filterState.normalizedSortKey(), m_pageSize, m_nextVideoOffset);
     m_nextVideoOffset += page.size();
     for (const VideoLightItem &video : page) {
         const QFileInfo fileInfo(video.filePath);

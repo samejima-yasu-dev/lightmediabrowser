@@ -53,6 +53,14 @@ if(BUILD_TESTING)
     target_link_libraries(video_metadata_probe_test PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME video_metadata_probe_test COMMAND video_metadata_probe_test)
 
+    add_executable(library_filter_state_test
+        tests/LibraryFilterStateTest.cpp
+        src/ui/LibraryFilterState.h
+    )
+    target_include_directories(library_filter_state_test PRIVATE src)
+    target_link_libraries(library_filter_state_test PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME library_filter_state_test COMMAND library_filter_state_test)
+
     add_executable(tag_manager_test
         tests/TagManagerTest.cpp
         src/ui/TagManager.h
