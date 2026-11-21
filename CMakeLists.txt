@@ -53,6 +53,19 @@ if(BUILD_TESTING)
     target_link_libraries(video_metadata_probe_test PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME video_metadata_probe_test COMMAND video_metadata_probe_test)
 
+    add_executable(tag_manager_test
+        tests/TagManagerTest.cpp
+        src/ui/TagManager.h
+        src/ui/TagManager.cpp
+        src/database/Database.h
+        src/database/Database.cpp
+        resources/resources.qrc
+    )
+    target_include_directories(tag_manager_test PRIVATE src)
+    target_link_libraries(tag_manager_test PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Test)
+    add_test(NAME tag_manager_test COMMAND tag_manager_test)
+    set_tests_properties(tag_manager_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(visible_thumbnail_rows_test
         tests/VisibleThumbnailRowsTest.cpp
     )
@@ -75,6 +88,8 @@ add_executable(lightmediabrowser
     src/scanner/MediaScanner.cpp
     src/ui/VisibleThumbnailRows.h
     src/ui/VideoListLayout.h
+    src/ui/TagManager.h
+    src/ui/TagManager.cpp
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
     resources/resources.qrc

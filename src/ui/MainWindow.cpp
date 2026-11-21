@@ -1,6 +1,7 @@
 #include "ui/MainWindow.h"
 #include "ui/VisibleThumbnailRows.h"
 #include "ui/VideoListLayout.h"
+#include "ui/TagManager.h"
 #include "media/VideoMetadataProbe.h"
 
 #include <QAction>
@@ -59,6 +60,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         }
     }
     buildUi();
+    m_tagManager = new TagManager(&m_database, m_tagTree, this);
+    connect(m_tagManager, &TagManager::tagSelectionChanged, this,
+            [this](qint64 tagId) { m_selectedTagId = tagId; refreshVideos(); });
+    connect(m_tagManager, &TagManager::libraryChanged, this,
+            [this] { refreshTags(); refreshVideos(); });
     loadFolders();
     refreshVideos();
     refreshTags();
@@ -589,166 +595,32 @@ void MainWindow::showVideoContextMenu(const QPoint &position)
 
 void MainWindow::showTagContextMenu(const QPoint &position)
 {
-    QTreeWidgetItem *item = m_tagTree->itemAt(position);
-    QMenu menu(this);
-
-    if (!item) {
-        // ツリーの余白を右クリック -> 大項目（カテゴリ）追加
-        menu.addAction(QStringLiteral("＋ Add Category"), this, [this] {
-            bool ok = false;
-            QString catName = QInputDialog::getText(this, QStringLiteral("Add Category"), QStringLiteral("Category name:"), QLineEdit::Normal, QString(), &ok);
-            if (ok && !catName.trimmed().isEmpty()) {
-                QString error;
-                if (!m_database.addCategory(catName.trimmed(), &error)) {
-                    QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not add category: %1").arg(error));
-                } else {
-                    refreshTags();
-                }
-            }
-        });
-    } else if (item->parent() == nullptr) {
-        // 大項目（カテゴリ）を右クリック -> 小項目（タグ）追加 / カテゴリ削除
-        const QString catName = item->text(0);
-        menu.addAction(QStringLiteral("＋ Add Tag to \"%1\"").arg(catName), this, [this, catName] {
-            bool ok = false;
-            QString tagName = QInputDialog::getText(this, QStringLiteral("Add Tag"), QStringLiteral("Tag name:"), QLineEdit::Normal, QString(), &ok);
-            if (ok && !tagName.trimmed().isEmpty()) {
-                QString error;
-                if (!m_database.addTag(catName, tagName.trimmed(), &error)) {
-                    QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not add tag: %1").arg(error));
-                } else {
-                    refreshTags();
-                }
-            }
-        });
-        menu.addSeparator();
-        menu.addAction(QStringLiteral("🗑️ Delete Category \"%1\"").arg(catName), this, [this, catName] {
-            if (QMessageBox::question(this, QStringLiteral("Delete Category"), QStringLiteral("Are you sure you want to delete category '%1' and all its tags?").arg(catName)) == QMessageBox::Yes) {
-                QString error;
-                if (!m_database.deleteCategory(catName, &error)) {
-                    QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not delete category: %1").arg(error));
-                } else {
-                    m_selectedTagId = 0;
-                    refreshTags();
-                    refreshVideos();
-                }
-            }
-        });
-    } else {
-        // 小項目（タグ）を右クリック -> タグ削除
-        const qint64 tagId = item->data(0, Qt::UserRole).toLongLong();
-        const QString tagName = item->text(0);
-        menu.addAction(QStringLiteral("🗑️ Delete Tag \"%1\"").arg(tagName), this, [this, tagId, tagName] {
-            if (QMessageBox::question(this, QStringLiteral("Delete Tag"), QStringLiteral("Are you sure you want to delete tag '%1'?").arg(tagName)) == QMessageBox::Yes) {
-                QString error;
-                if (!m_database.deleteTag(tagId, &error)) {
-                    QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not delete tag: %1").arg(error));
-                } else {
-                    if (m_selectedTagId == tagId) m_selectedTagId = 0;
-                    refreshTags();
-                    refreshVideos();
-                }
-            }
-        });
-    }
-
-    menu.exec(m_tagTree->viewport()->mapToGlobal(position));
+    if (m_tagManager) m_tagManager->showContextMenu(position);
 }
 
 void MainWindow::assignTagsToVideo()
 {
     auto *item = m_videoList->currentItem();
-    if (!item) return;
+    if (!item || !m_tagManager) return;
     const qint64 videoId = item->data(Qt::UserRole).toLongLong();
     const Video video = m_database.findById(videoId);
     if (video.id == 0) return;
-
-    // タグ割り当てダイアログを作成
-    QDialog dialog(this);
-    dialog.setWindowTitle(QStringLiteral("Assign Tags: %1").arg(video.fileName));
-    dialog.resize(360, 480);
-
-    auto *layout = new QVBoxLayout(&dialog);
-    layout->addWidget(new QLabel(QStringLiteral("Select tags for this video:"), &dialog));
-
-    // チェックボックス一覧を格納するスクロールエリア
-    auto *scrollArea = new QScrollArea(&dialog);
-    scrollArea->setWidgetResizable(true);
-    auto *scrollWidget = new QWidget();
-    auto *scrollLayout = new QVBoxLayout(scrollWidget);
-
-    const QList<TagInfo> allTags = m_database.tagsWithCategories();
-    const QList<qint64> assignedTags = m_database.tagIdsForVideo(videoId);
-    QMap<qint64, QCheckBox *> checkBoxMap;
-
-    for (const TagInfo &tag : allTags) {
-        if (tag.id <= 0) continue;
-        auto *chk = new QCheckBox(QStringLiteral("[%1] %2").arg(tag.category, tag.name), scrollWidget);
-        chk->setProperty("tagId", tag.id);
-        if (assignedTags.contains(tag.id)) {
-            chk->setChecked(true);
-        }
-        scrollLayout->addWidget(chk);
-        checkBoxMap.insert(tag.id, chk);
-    }
-    scrollLayout->addStretch();
-    scrollWidget->setLayout(scrollLayout);
-    scrollArea->setWidget(scrollWidget);
-    layout->addWidget(scrollArea);
-
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    layout->addWidget(buttonBox);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        QList<qint64> newAssignedTags;
-        for (auto it = checkBoxMap.cbegin(); it != checkBoxMap.cend(); ++it) {
-            if (it.value()->isChecked()) {
-                newAssignedTags.append(it.key());
-            }
-        }
-        QString error;
-        if (!m_database.setVideoTags(videoId, newAssignedTags, &error)) {
-            QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Could not assign tags: %1").arg(error));
-        } else {
-            showDetails(item);
-            statusBar()->showMessage(QStringLiteral("Tags updated for: %1").arg(video.fileName));
-        }
-    }
+    m_tagManager->assignToVideo(videoId, video.fileName);
+    showDetails(item);
 }
-
 
 void MainWindow::selectTag(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column)
+    if (!item) return;
     m_selectedTagId = item->data(0, Qt::UserRole).toLongLong();
     refreshVideos();
 }
 
 void MainWindow::refreshTags()
 {
-    m_tagTree->clear();
-    if (!m_databaseReady) return;
-
-    QMap<QString, QTreeWidgetItem *> categories;
-
-    for (const TagInfo &tag : m_database.tagsWithCategories()) {
-        // カテゴリ項目の作成（未追加の場合のみ）
-        if (!categories.contains(tag.category)) {
-            categories.insert(tag.category, new QTreeWidgetItem(m_tagTree, {tag.category}));
-        }
-
-        // タグ名が存在する場合のみ、子要素（タグ）として追加
-        if (!tag.name.isEmpty()) {
-            auto *item = new QTreeWidgetItem(categories.value(tag.category), {tag.name});
-            item->setData(0, Qt::UserRole, tag.id);
-        }
-    }
-
-    for (QTreeWidgetItem *category : categories) {
-        category->setExpanded(true);
-    }
+    if (!m_databaseReady || !m_tagManager) return;
+    m_tagManager->refresh();
 }
 
 void MainWindow::showDetails(QListWidgetItem *item)

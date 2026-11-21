@@ -23,6 +23,7 @@ class QProgressBar;
 class QPushButton;
 class QSpinBox;
 class QTimer;
+class TagManager;
 
 class MainWindow : public QMainWindow
 {
@@ -71,6 +72,7 @@ private:
     QPushButton *m_cancelBulkThumbnailButton = nullptr;
     bool m_bulkThumbnailRunning = false;
     QTreeWidget *m_tagTree = nullptr;
+    TagManager *m_tagManager = nullptr;
     QListWidget *m_videoList = nullptr;
     QLabel *m_details = nullptr;
     QList<QLabel *> m_detailSampleLabels;
