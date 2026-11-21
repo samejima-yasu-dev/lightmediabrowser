@@ -1,4 +1,5 @@
 #include "ui/MainWindow.h"
+#include "diagnostics/DiagnosticLogger.h"
 
 #include <QApplication>
 #include <QStyleFactory>
@@ -23,7 +24,12 @@ int main(int argc, char *argv[])
     // アプリケーション名と組織名を設定（設定の保存やデータ保存パスで使用）
     application.setApplicationName(QStringLiteral("LightMediaBrowser"));
     application.setOrganizationName(QStringLiteral("LightMediaBrowser"));
-    
+
+    QString logError;
+    if (!installDiagnosticLogger(nullptr, &logError)) {
+        qWarning() << logError;
+    }
+
     // メインウィンドウをインスタンス化して表示
     MainWindow window;
     window.show();
