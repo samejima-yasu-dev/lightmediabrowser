@@ -2,7 +2,7 @@
 
 [English](README.md) | [日本語](README.jp.md)
 
-**LightMediaBrowser is a fast, lightweight, local-first application for organizing and browsing large collections of local video files.**
+**Bring videos scattered across folders and drives into one fast, lightweight local library — without uploading them to the cloud or moving the original files.**
 
 <img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/880624bd-9cc3-43e8-8ed3-412a1a702df6" />
 
@@ -18,9 +18,9 @@ It is designed specifically for **video management** — scanning, browsing, sea
 
 ## Why LightMediaBrowser?
 
-When you have a large collection of video files, simply opening them in a file manager can become difficult.
+When a large video collection is spread across internal and external drives, finding the right file can mean searching through folders one by one.
 
-LightMediaBrowser provides a lightweight local library for your video collection:
+LightMediaBrowser brings multiple local folders into one searchable library. Your videos stay where they are, while you can:
 
 * Scan multiple local folders
 * Browse videos in a thumbnail-based library
@@ -46,14 +46,16 @@ The application focuses on **managing your video collection**, rather than tryin
 
 ### Fast Browsing
 
-* Asynchronous directory scanning
-* Asynchronous thumbnail generation
+* Scan folders in the background while keeping the library responsive
+* Load video entries incrementally as you browse instead of loading the entire collection at once
+* Generate thumbnails only for videos in the visible list area
+* Read detailed media metadata when you select a video, in the background, and cache it in the local database for later
 * Generate missing thumbnails for all registered videos from the toolbar, with progress and cancellation in the status bar while keeping the rest of the app usable
 * Bulk thumbnail generation uses a bounded two-worker queue and skips valid cached thumbnails
 * Thumbnail caching
 * Additional scene previews are generated only for the selected video and cached for later
 * Database-backed library
-* Designed to handle large local video collections
+* These on-demand workflows help keep browsing responsive and avoid unnecessary work across large collections
 
 ### Search & Filtering
 
