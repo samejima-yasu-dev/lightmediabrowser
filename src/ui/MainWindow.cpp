@@ -184,23 +184,27 @@ void MainWindow::buildUi()
     scanAction->setToolTip(QStringLiteral("Scan all registered folders for videos"));
     
     m_folderSelector = new QComboBox(this);
+    m_folderSelector->setObjectName(QStringLiteral("folderCombo"));
     m_folderSelector->setMinimumWidth(220);
     toolbar->addWidget(m_folderSelector);
     
     toolbar->addSeparator();
 
     m_search = new QLineEdit(this);
+    m_search->setObjectName(QStringLiteral("searchLineEdit"));
     m_search->setPlaceholderText(QStringLiteral("🔍 Search videos..."));
     m_search->setClearButtonEnabled(true);
     m_search->setMinimumWidth(200);
     toolbar->addWidget(m_search);
 
     m_libraryFilter = new QComboBox(this);
+    m_libraryFilter->setObjectName(QStringLiteral("libraryFilterCombo"));
     m_libraryFilter->addItem(QStringLiteral("All Videos"), false);
     m_libraryFilter->addItem(QStringLiteral("★ Favorites"), true);
     toolbar->addWidget(m_libraryFilter);
 
     m_duplicateFilter = new QComboBox(this);
+    m_duplicateFilter->setObjectName(QStringLiteral("duplicateFilterCombo"));
     m_duplicateFilter->addItem(QStringLiteral("All"), false);
     m_duplicateFilter->addItem(QStringLiteral("Same size or filename"), true);
     m_duplicateFilter->setToolTip(QStringLiteral(
@@ -211,6 +215,7 @@ void MainWindow::buildUi()
     toolbar->addSeparator();
 
     m_sortSelector = new QComboBox(this);
+    m_sortSelector->setObjectName(QStringLiteral("sortSelectorCombo"));
     m_sortSelector->addItem(QStringLiteral("Newest"), QStringLiteral("newest"));
     m_sortSelector->addItem(QStringLiteral("Name"), QStringLiteral("name"));
     m_sortSelector->addItem(QStringLiteral("Size"), QStringLiteral("size"));
@@ -218,6 +223,7 @@ void MainWindow::buildUi()
     toolbar->addWidget(m_sortSelector);
 
     m_minPlayCount = new QSpinBox(this);
+    m_minPlayCount->setObjectName(QStringLiteral("minPlayCountSpin"));
     m_minPlayCount->setRange(0, 1000000);
     m_minPlayCount->setPrefix(QStringLiteral("Plays ≥ "));
     m_minPlayCount->setToolTip(QStringLiteral("Minimum play count"));
@@ -280,10 +286,12 @@ void MainWindow::buildUi()
 
     auto *splitter = new QSplitter(Qt::Horizontal, this);
     m_tagTree = new QTreeWidget(splitter);
+    m_tagTree->setObjectName(QStringLiteral("tagTree"));
     m_tagTree->setHeaderLabels({QStringLiteral("Tags")});
     m_tagTree->setMinimumWidth(190);
     m_tagTree->setContextMenuPolicy(Qt::CustomContextMenu);
     m_videoList = new QListWidget(splitter);
+    m_videoList->setObjectName(QStringLiteral("videoList"));
     m_videoList->setViewMode(QListView::IconMode);
     m_videoList->setResizeMode(QListView::Adjust);
     m_videoList->setMovement(QListView::Static);

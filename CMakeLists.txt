@@ -80,6 +80,30 @@ if(BUILD_TESTING)
     target_include_directories(visible_thumbnail_rows_test PRIVATE src)
     target_link_libraries(visible_thumbnail_rows_test PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Test)
     add_test(NAME visible_thumbnail_rows_test COMMAND visible_thumbnail_rows_test)
+
+    add_executable(mainwindow_smoke_test
+        tests/MainWindowSmokeTest.cpp
+        src/domain/Video.h
+        src/media/ThumbnailService.h
+        src/media/ThumbnailService.cpp
+        src/media/VideoMetadataProbe.h
+        src/media/VideoMetadataProbe.cpp
+        src/database/Database.h
+        src/database/Database.cpp
+        src/scanner/MediaScanner.h
+        src/scanner/MediaScanner.cpp
+        src/ui/VisibleThumbnailRows.h
+        src/ui/VideoListLayout.h
+        src/ui/TagManager.h
+        src/ui/TagManager.cpp
+        src/ui/MainWindow.h
+        src/ui/MainWindow.cpp
+        resources/resources.qrc
+    )
+    target_include_directories(mainwindow_smoke_test PRIVATE src)
+    target_link_libraries(mainwindow_smoke_test PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Concurrent Qt6::Network Qt6::Test)
+    add_test(NAME mainwindow_smoke_test COMMAND mainwindow_smoke_test)
+    set_tests_properties(mainwindow_smoke_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     set_tests_properties(visible_thumbnail_rows_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
