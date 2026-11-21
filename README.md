@@ -124,6 +124,12 @@ On Linux, the default locations are:
 ~/.config/LightMediaBrowser/LightMediaBrowser.conf
 ```
 
+Application diagnostics are written to `lightmediabrowser.log` in Qt's application-data location, with 5 MB rotation and three backups. The log is kept locally and does not contain media payloads or database records.
+
+At startup, LightMediaBrowser checks for `ffmpeg` and `ffprobe`. If either tool is missing, it shows a status-bar hint with platform-specific installation guidance.
+
+The SQLite schema migrates automatically within the supported version range. A database created by a newer unsupported application version is left unopened with a clear error instead of being modified.
+
 ### About deleted or moved files
 
 The library database is separate from the filesystem.

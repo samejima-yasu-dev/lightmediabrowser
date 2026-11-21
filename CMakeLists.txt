@@ -15,6 +15,8 @@ if(BUILD_TESTING)
 
     add_executable(thumbnail_service_test
         tests/ThumbnailServiceTest.cpp
+        src/media/MediaToolLocator.h
+        src/media/MediaToolLocator.cpp
         src/media/ThumbnailService.h
         src/media/ThumbnailService.cpp
     )
@@ -45,6 +47,8 @@ if(BUILD_TESTING)
 
     add_executable(video_metadata_probe_test
         tests/VideoMetadataProbeTest.cpp
+        src/media/MediaToolLocator.h
+        src/media/MediaToolLocator.cpp
         src/domain/Video.h
         src/media/VideoMetadataProbe.h
         src/media/VideoMetadataProbe.cpp

@@ -20,6 +20,7 @@
 
 - These packages are not code-signed or notarized. Windows SmartScreen or
   macOS Gatekeeper may show a warning when launching for the first time.
+- Diagnostic logs are stored in `lightmediabrowser.log` in Qt's application-data directory. The log rotates at 5 MB and retains three backups.
 
 ## 日本語
 
@@ -42,3 +43,4 @@
 
 - 配布パッケージはコード署名・公証されていません。初回起動時に
   Windows SmartScreenやmacOS Gatekeeperの警告が表示される場合があります。
+- 診断ログはQtのアプリケーションデータ保存先にある `lightmediabrowser.log`へ保存されます。ログは5MBでローテーションし、最大3世代を保持します。
