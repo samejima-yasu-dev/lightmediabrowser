@@ -56,7 +56,6 @@ private:
     void generateVisibleThumbnails();
     void removeMissingVideosFromAvailableFolders();
     LibraryFilterState currentLibraryFilterState() const;
-    QString trText(const QString &key) const;
 
     Database m_database;
     ThumbnailService m_thumbnailService;

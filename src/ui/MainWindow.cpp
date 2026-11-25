@@ -180,19 +180,19 @@ void MainWindow::buildUi()
     setStyleSheet(defaultDark ? lightStyle + darkStyle : lightStyle);
 
     auto *toolbar = addToolBar(QStringLiteral("Library"));
-    
+
     auto *addAction = toolbar->addAction(QStringLiteral("＋ Add Folder"));
     addAction->setToolTip(QStringLiteral("Add media folder"));
     auto *removeAction = toolbar->addAction(QStringLiteral("－ Remove"));
     removeAction->setToolTip(QStringLiteral("Remove current folder"));
     auto *scanAction = toolbar->addAction(QStringLiteral("🔄 Scan"));
     scanAction->setToolTip(QStringLiteral("Scan all registered folders for videos"));
-    
+
     m_folderSelector = new QComboBox(this);
     m_folderSelector->setObjectName(QStringLiteral("folderCombo"));
     m_folderSelector->setMinimumWidth(220);
     toolbar->addWidget(m_folderSelector);
-    
+
     toolbar->addSeparator();
 
     m_search = new QLineEdit(this);
@@ -719,8 +719,8 @@ void MainWindow::showDetails(QListWidgetItem *item)
     };
 
     const QString durationStr = formatDuration(video.durationMs);
-    const QString resolutionStr = (video.width > 0 && video.height > 0) 
-        ? QStringLiteral("%1 × %2").arg(video.width).arg(video.height) 
+    const QString resolutionStr = (video.width > 0 && video.height > 0)
+        ? QStringLiteral("%1 × %2").arg(video.width).arg(video.height)
         : QStringLiteral("Unknown");
     const QString videoCodecStr = video.videoCodec.isEmpty() ? QStringLiteral("Unknown") : video.videoCodec;
     const QString audioCodecStr = video.audioCodec.isEmpty() ? QStringLiteral("Unknown") : video.audioCodec;

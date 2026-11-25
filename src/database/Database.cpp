@@ -585,7 +585,7 @@ bool Database::deleteCategory(const QString &categoryName, QString *error)
 bool Database::addTag(const QString &categoryName, const QString &tagName, QString *error)
 {
     if (categoryName.trimmed().isEmpty() || tagName.trimmed().isEmpty()) return false;
-    
+
     // まずカテゴリが存在するか確認し、なければ作成する
     if (!addCategory(categoryName, error)) return false;
 
