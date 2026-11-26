@@ -106,7 +106,7 @@ staged_app="$staging_directory/LightMediaBrowser.app"
 ditto "$app_bundle" "$staged_app"
 cp "$repository_root/LICENSE" "$staging_directory/"
 cp "$repository_root/THIRD_PARTY_NOTICES.md" "$staging_directory/"
-cp "$repository_root/docs/INSTALLATION.md" "$staging_directory/README.md"
+cp "$repository_root/INSTALLATION.md" "$staging_directory/README.md"
 third_party_directory="$staging_directory/third-party-licenses/qt"
 mkdir -p "$third_party_directory"
 license_index=0

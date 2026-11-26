@@ -63,7 +63,7 @@ try {
 
     Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $stagePath
     Copy-Item -LiteralPath (Join-Path $repositoryRoot 'THIRD_PARTY_NOTICES.md') -Destination $stagePath
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\INSTALLATION.md') `
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'INSTALLATION.md') `
         -Destination (Join-Path $stagePath 'README.md')
 
     $thirdPartyDirectory = Join-Path $stagePath 'third-party-licenses\qt'
