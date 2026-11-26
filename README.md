@@ -10,7 +10,7 @@ It is designed specifically for **video management** — scanning, browsing, sea
 
 **It is not a video player.** Play your files with the external player you prefer, such as VLC, mpv, or MPC-HC/BE.
 
-> **Status: 0.0.17**
+> **Status: 0.0.18**
 >
 > This release is under active development. The core workflow is usable, but features and internal architecture may change.
 
@@ -97,7 +97,7 @@ A matching file size or filename does not confirm that video contents are identi
 * Assign tags to videos
 * Use tags and notes to organize large collections
 * Mark videos as favorites
-* Export and import tag categories, video tag assignments, and notes as JSON from the **Tag Data** menu
+* Export and import tag categories, video tag assignments, and notes as JSON from the **Tag Data** toolbar button menu
 
 Imports merge tag definitions and update notes and tag assignments only for videos whose file paths match exactly. Unmatched videos are skipped. Export files can contain local file paths and notes; the default `LightMediaBrowser-tag-data*.json` filenames are ignored by Git.
 
@@ -169,7 +169,7 @@ After a complete scan of an available registered folder, records and thumbnails 
 
 ## Project Status
 
-**Current version: 0.0.17**
+**Current version: 0.0.18**
 
 LightMediaBrowser is in early development.
 

@@ -35,6 +35,7 @@
 #include <QStatusBar>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolButton>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QScrollArea>
@@ -142,15 +143,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 void MainWindow::buildUi()
 {
-    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.17"));
+    setWindowTitle(QStringLiteral("LightMediaBrowser v0.0.18"));
     showMaximized(); // アプリ起動時にウィンドウを最大化（フルスクリーン表示）してボタンが隠れないようにする
     const QString lightStyle = QStringLiteral(R"(
         QMainWindow, QWidget { background: #f5f7f8; color: #1d2930; }
-        QToolBar { background: #ffffff; border: 0; border-bottom: 1px solid #d7e0e3; spacing: 8px; padding: 9px 12px; }
-        QToolButton { color: #1d2930; background: #ffffff; border: 1px solid #b9c8cd; border-radius: 6px; padding: 7px 10px; }
+        QToolBar { background: #ffffff; border: 0; border-bottom: 1px solid #d7e0e3; spacing: 5px; padding: 9px 8px; }
+        QToolButton { color: #1d2930; background: #ffffff; border: 1px solid #b9c8cd; border-radius: 6px; padding: 7px 8px; }
         QToolButton:hover { background: #eaf4f2; border-color: #2a9d8f; }
         QToolButton:pressed { background: #2a9d8f; border-color: #237f74; color: #ffffff; }
-        QComboBox, QLineEdit { background: #ffffff; border: 1px solid #b9c8cd; border-radius: 6px; padding: 8px 10px; color: #1d2930; selection-background-color: #b8e0d8; }
+        QComboBox, QLineEdit { background: #ffffff; border: 1px solid #b9c8cd; border-radius: 6px; padding: 8px 8px; color: #1d2930; selection-background-color: #b8e0d8; }
         QComboBox:hover, QLineEdit:focus { border-color: #2a9d8f; }
         QSplitter::handle { background: #d7e0e3; }
         QTreeWidget { background: #ffffff; border: 0; padding: 10px 7px; outline: 0; }
@@ -193,6 +194,19 @@ void MainWindow::buildUi()
     setStyleSheet(defaultDark ? lightStyle + darkStyle : lightStyle);
 
     auto *toolbar = addToolBar(QStringLiteral("Library"));
+    auto *tagDataMenu = new QMenu(this);
+    tagDataMenu->setObjectName(QStringLiteral("tagDataMenu"));
+    QAction *exportTagDataAction = tagDataMenu->addAction(QStringLiteral("Export JSON..."));
+    exportTagDataAction->setObjectName(QStringLiteral("exportTagDataAction"));
+    QAction *importTagDataAction = tagDataMenu->addAction(QStringLiteral("Import JSON..."));
+    importTagDataAction->setObjectName(QStringLiteral("importTagDataAction"));
+    auto *tagDataButton = new QToolButton(this);
+    tagDataButton->setObjectName(QStringLiteral("tagDataButton"));
+    tagDataButton->setText(QStringLiteral("Tag Data"));
+    tagDataButton->setToolTip(QStringLiteral("Import or export tag data"));
+    tagDataButton->setPopupMode(QToolButton::InstantPopup);
+    tagDataButton->setMenu(tagDataMenu);
+    toolbar->addWidget(tagDataButton);
 
     auto *addAction = toolbar->addAction(QStringLiteral("＋ Add Folder"));
     addAction->setToolTip(QStringLiteral("Add media folder"));
@@ -203,7 +217,7 @@ void MainWindow::buildUi()
 
     m_folderSelector = new QComboBox(this);
     m_folderSelector->setObjectName(QStringLiteral("folderCombo"));
-    m_folderSelector->setMinimumWidth(220);
+    m_folderSelector->setMinimumWidth(180);
     toolbar->addWidget(m_folderSelector);
 
     toolbar->addSeparator();
@@ -212,7 +226,7 @@ void MainWindow::buildUi()
     m_search->setObjectName(QStringLiteral("searchLineEdit"));
     m_search->setPlaceholderText(QStringLiteral("🔍 Search videos..."));
     m_search->setClearButtonEnabled(true);
-    m_search->setMinimumWidth(200);
+    m_search->setMinimumWidth(180);
     toolbar->addWidget(m_search);
 
     m_libraryFilter = new QComboBox(this);
@@ -269,13 +283,6 @@ void MainWindow::buildUi()
     themeAction->setCheckable(true);
     themeAction->setChecked(defaultDark); // 起動時の設定状態に合わせる
     themeAction->setToolTip(QStringLiteral("Switch between Dark and Light theme"));
-
-    QMenu *tagDataMenu = menuBar()->addMenu(QStringLiteral("Tag Data"));
-    tagDataMenu->setObjectName(QStringLiteral("tagDataMenu"));
-    QAction *exportTagDataAction = tagDataMenu->addAction(QStringLiteral("Export JSON..."));
-    exportTagDataAction->setObjectName(QStringLiteral("exportTagDataAction"));
-    QAction *importTagDataAction = tagDataMenu->addAction(QStringLiteral("Import JSON..."));
-    importTagDataAction->setObjectName(QStringLiteral("importTagDataAction"));
 
     connect(addAction, &QAction::triggered, this, &MainWindow::addFolder);
     connect(removeAction, &QAction::triggered, this, &MainWindow::removeFolder);

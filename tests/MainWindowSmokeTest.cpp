@@ -5,8 +5,11 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMenu>
+#include <QMenuBar>
 #include <QSpinBox>
 #include <QStandardPaths>
+#include <QToolButton>
 #include <QTreeWidget>
 #include <QtTest>
 
@@ -18,6 +21,7 @@ private slots:
     void initTestCase();
     void startupAndFilterControlsAreWired();
     void tagDataImportAndExportActionsAreAvailable();
+    void tagDataMenuIsAvailableFromSingleToolbarButton();
 };
 
 void MainWindowSmokeTest::initTestCase()
@@ -74,6 +78,18 @@ void MainWindowSmokeTest::tagDataImportAndExportActionsAreAvailable()
     QAction *importAction = window.findChild<QAction *>(QStringLiteral("importTagDataAction"));
     QVERIFY(exportAction);
     QVERIFY(importAction);
+}
+
+void MainWindowSmokeTest::tagDataMenuIsAvailableFromSingleToolbarButton()
+{
+    MainWindow window;
+    auto *tagDataButton = window.findChild<QToolButton *>(QStringLiteral("tagDataButton"));
+
+    QVERIFY(tagDataButton);
+    QCOMPARE(tagDataButton->popupMode(), QToolButton::InstantPopup);
+    QVERIFY(tagDataButton->menu());
+    QCOMPARE(tagDataButton->menu()->actions().size(), 2);
+    QVERIFY(window.menuBar()->actions().isEmpty());
 }
 
 QTEST_MAIN(MainWindowSmokeTest)
