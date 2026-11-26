@@ -10,7 +10,7 @@ It is designed specifically for **video management** — scanning, browsing, sea
 
 **It is not a video player.** Play your files with the external player you prefer, such as VLC, mpv, or MPC-HC/BE.
 
-> **Status: 0.0.16**
+> **Status: 0.0.17**
 >
 > This release is under active development. The core workflow is usable, but features and internal architecture may change.
 
@@ -145,7 +145,7 @@ After a complete scan of an available registered folder, records and thumbnails 
 
 ## Project Status
 
-**Current version: 0.0.16**
+**Current version: 0.0.17**
 
 LightMediaBrowser is in early development.
 
