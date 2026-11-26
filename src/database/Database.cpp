@@ -8,7 +8,181 @@
 #include <QSqlQuery>
 #include <QStandardPaths>
 #include <QDateTime>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMap>
+#include <QSet>
 #include <QStringList>
+#include <cmath>
+
+namespace
+{
+struct ImportedTag
+{
+    QString category;
+    QString name;
+};
+
+struct ImportedCategory
+{
+    QString name;
+    QStringList tags;
+};
+
+struct ImportedVideo
+{
+    QString path;
+    QString fileName;
+    qint64 fileSize = 0;
+    QString note;
+    QList<ImportedTag> tags;
+};
+
+struct ParsedTagData
+{
+    QList<ImportedCategory> categories;
+    QList<ImportedVideo> videos;
+};
+
+bool setError(QString *error, const QString &message)
+{
+    if (error) *error = message;
+    return false;
+}
+
+QString tagKey(const QString &category, const QString &name)
+{
+    return category + QChar::Null + name;
+}
+
+bool parseTagData(const QJsonDocument &document, ParsedTagData *data, QString *error)
+{
+    if (!data) return setError(error, QStringLiteral("Tag data output is unavailable."));
+    if (!document.isObject()) return setError(error, QStringLiteral("Tag data must be a JSON object."));
+
+    const QJsonObject root = document.object();
+    if (root.value(QStringLiteral("format")).toString() !=
+        QStringLiteral("lightmediabrowser-tag-data")) {
+        return setError(error, QStringLiteral("Unsupported tag data format."));
+    }
+    const QJsonValue version = root.value(QStringLiteral("version"));
+    if (!version.isDouble() || version.toDouble() != 1.0) {
+        return setError(error, QStringLiteral("Unsupported tag data version."));
+    }
+    const QJsonValue categoriesValue = root.value(QStringLiteral("categories"));
+    const QJsonValue videosValue = root.value(QStringLiteral("videos"));
+    if (!categoriesValue.isArray() || !videosValue.isArray()) {
+        return setError(error, QStringLiteral("Tag data must contain categories and videos arrays."));
+    }
+
+    ParsedTagData parsed;
+    QSet<QString> categoryNames;
+    QSet<QString> definedTags;
+    const QJsonArray categories = categoriesValue.toArray();
+    for (qsizetype categoryIndex = 0; categoryIndex < categories.size(); ++categoryIndex) {
+        if (!categories.at(categoryIndex).isObject()) {
+            return setError(error, QStringLiteral("Category %1 must be an object.").arg(categoryIndex));
+        }
+        const QJsonObject object = categories.at(categoryIndex).toObject();
+        const QJsonValue nameValue = object.value(QStringLiteral("name"));
+        const QJsonValue tagsValue = object.value(QStringLiteral("tags"));
+        const QString name = nameValue.toString().trimmed();
+        if (!nameValue.isString() || name.isEmpty() || !tagsValue.isArray()) {
+            return setError(error, QStringLiteral("Category %1 has invalid name or tags.").arg(categoryIndex));
+        }
+        if (categoryNames.contains(name)) {
+            return setError(error, QStringLiteral("Duplicate category: %1").arg(name));
+        }
+        categoryNames.insert(name);
+
+        ImportedCategory category;
+        category.name = name;
+        QSet<QString> namesInCategory;
+        const QJsonArray tags = tagsValue.toArray();
+        for (qsizetype tagIndex = 0; tagIndex < tags.size(); ++tagIndex) {
+            const QJsonValue tagValue = tags.at(tagIndex);
+            const QString tagName = tagValue.toString().trimmed();
+            if (!tagValue.isString() || tagName.isEmpty()) {
+                return setError(error, QStringLiteral("Tag %1 in category %2 has an invalid name.")
+                                          .arg(tagIndex).arg(name));
+            }
+            if (namesInCategory.contains(tagName)) {
+                return setError(error, QStringLiteral("Duplicate tag %1 in category %2.")
+                                          .arg(tagName, name));
+            }
+            namesInCategory.insert(tagName);
+            definedTags.insert(tagKey(name, tagName));
+            category.tags.append(tagName);
+        }
+        parsed.categories.append(category);
+    }
+
+    QSet<QString> videoPaths;
+    const QJsonArray videos = videosValue.toArray();
+    for (qsizetype videoIndex = 0; videoIndex < videos.size(); ++videoIndex) {
+        if (!videos.at(videoIndex).isObject()) {
+            return setError(error, QStringLiteral("Video %1 must be an object.").arg(videoIndex));
+        }
+        const QJsonObject object = videos.at(videoIndex).toObject();
+        const QJsonValue pathValue = object.value(QStringLiteral("path"));
+        const QJsonValue fileNameValue = object.value(QStringLiteral("fileName"));
+        const QJsonValue fileSizeValue = object.value(QStringLiteral("fileSize"));
+        const QJsonValue noteValue = object.value(QStringLiteral("note"));
+        const QJsonValue tagsValue = object.value(QStringLiteral("tags"));
+        const QString path = pathValue.toString();
+        const double fileSize = fileSizeValue.toDouble(-1.0);
+        constexpr double maxExactJsonInteger = 9007199254740991.0;
+        if (!pathValue.isString() || path.trimmed().isEmpty() ||
+            !fileNameValue.isString() || fileNameValue.toString().trimmed().isEmpty() ||
+            !fileSizeValue.isDouble() || fileSize < 0.0 ||
+            fileSize > maxExactJsonInteger || std::floor(fileSize) != fileSize ||
+            !noteValue.isString() || !tagsValue.isArray()) {
+            return setError(error, QStringLiteral("Video %1 has invalid fields.").arg(videoIndex));
+        }
+        if (videoPaths.contains(path)) {
+            return setError(error, QStringLiteral("Duplicate video path: %1").arg(path));
+        }
+        videoPaths.insert(path);
+
+        ImportedVideo video;
+        video.path = path;
+        video.fileName = fileNameValue.toString();
+        video.fileSize = static_cast<qint64>(fileSize);
+        video.note = noteValue.toString();
+        QSet<QString> assignedTags;
+        const QJsonArray tags = tagsValue.toArray();
+        for (qsizetype tagIndex = 0; tagIndex < tags.size(); ++tagIndex) {
+            if (!tags.at(tagIndex).isObject()) {
+                return setError(error, QStringLiteral("Tag assignment %1 for video %2 must be an object.")
+                                          .arg(tagIndex).arg(path));
+            }
+            const QJsonObject tag = tags.at(tagIndex).toObject();
+            const QJsonValue categoryValue = tag.value(QStringLiteral("category"));
+            const QJsonValue nameValue = tag.value(QStringLiteral("name"));
+            const QString category = categoryValue.toString().trimmed();
+            const QString name = nameValue.toString().trimmed();
+            const QString key = tagKey(category, name);
+            if (!categoryValue.isString() || category.isEmpty() ||
+                !nameValue.isString() || name.isEmpty() ||
+                !definedTags.contains(key)) {
+                return setError(error, QStringLiteral("Video %1 refers to an undefined tag.")
+                                          .arg(path));
+            }
+            if (assignedTags.contains(key)) {
+                return setError(error, QStringLiteral("Video %1 contains a duplicate tag assignment.")
+                                          .arg(path));
+            }
+            assignedTags.insert(key);
+            video.tags.append({category, name});
+        }
+        parsed.videos.append(video);
+    }
+
+    *data = parsed;
+    return true;
+}
+}
 
 Database::Database()
 {
@@ -506,6 +680,297 @@ QList<TagInfo> Database::tagsWithCategories() const
         result.append(info);
     }
     return result;
+}
+
+bool Database::exportTagData(QJsonDocument *document, QString *error) const
+{
+    if (!document) return setError(error, QStringLiteral("Tag data output is unavailable."));
+
+    QMap<QString, QJsonArray> tagsByCategory;
+    QSqlQuery categoryQuery(m_database);
+    if (!categoryQuery.exec(QStringLiteral(
+            "SELECT c.name, t.name FROM categories c "
+            "LEFT JOIN tags t ON t.category_id=c.id ORDER BY c.name, t.name"))) {
+        return setError(error, QStringLiteral("Could not read tag categories: %1")
+                                   .arg(categoryQuery.lastError().text()));
+    }
+    while (categoryQuery.next()) {
+        const QString category = categoryQuery.value(0).toString();
+        if (!tagsByCategory.contains(category)) tagsByCategory.insert(category, {});
+        if (!categoryQuery.value(1).isNull()) {
+            QJsonArray tags = tagsByCategory.value(category);
+            tags.append(categoryQuery.value(1).toString());
+            tagsByCategory.insert(category, tags);
+        }
+    }
+    if (categoryQuery.lastError().isValid()) {
+        return setError(error, QStringLiteral("Could not read tag categories: %1")
+                                   .arg(categoryQuery.lastError().text()));
+    }
+    categoryQuery.finish();
+
+    QJsonArray categories;
+    for (auto it = tagsByCategory.cbegin(); it != tagsByCategory.cend(); ++it) {
+        categories.append(QJsonObject{
+            {QStringLiteral("name"), it.key()},
+            {QStringLiteral("tags"), it.value()}
+        });
+    }
+
+    QHash<qint64, QJsonArray> tagsByVideo;
+    QSqlQuery assignmentQuery(m_database);
+    if (!assignmentQuery.exec(QStringLiteral(
+            "SELECT vt.video_id, c.name, t.name FROM video_tags vt "
+            "JOIN tags t ON t.id=vt.tag_id JOIN categories c ON c.id=t.category_id "
+            "ORDER BY c.name, t.name"))) {
+        return setError(error, QStringLiteral("Could not read video tag assignments: %1")
+                                   .arg(assignmentQuery.lastError().text()));
+    }
+    while (assignmentQuery.next()) {
+        const qint64 videoId = assignmentQuery.value(0).toLongLong();
+        QJsonArray tags = tagsByVideo.value(videoId);
+        tags.append(QJsonObject{
+            {QStringLiteral("category"), assignmentQuery.value(1).toString()},
+            {QStringLiteral("name"), assignmentQuery.value(2).toString()}
+        });
+        tagsByVideo.insert(videoId, tags);
+    }
+    if (assignmentQuery.lastError().isValid()) {
+        return setError(error, QStringLiteral("Could not read video tag assignments: %1")
+                                   .arg(assignmentQuery.lastError().text()));
+    }
+    assignmentQuery.finish();
+
+    QJsonArray videos;
+    QSqlQuery videoQuery(m_database);
+    if (!videoQuery.exec(QStringLiteral(
+            "SELECT id, file_path, file_name, file_size, note FROM videos ORDER BY file_path"))) {
+        return setError(error, QStringLiteral("Could not read videos for tag export: %1")
+                                   .arg(videoQuery.lastError().text()));
+    }
+    while (videoQuery.next()) {
+        const qint64 videoId = videoQuery.value(0).toLongLong();
+        videos.append(QJsonObject{
+            {QStringLiteral("path"), videoQuery.value(1).toString()},
+            {QStringLiteral("fileName"), videoQuery.value(2).toString()},
+            {QStringLiteral("fileSize"), static_cast<double>(videoQuery.value(3).toLongLong())},
+            {QStringLiteral("note"), videoQuery.value(4).toString()},
+            {QStringLiteral("tags"), tagsByVideo.value(videoId)}
+        });
+    }
+    if (videoQuery.lastError().isValid()) {
+        return setError(error, QStringLiteral("Could not read videos for tag export: %1")
+                                   .arg(videoQuery.lastError().text()));
+    }
+
+    *document = QJsonDocument(QJsonObject{
+        {QStringLiteral("format"), QStringLiteral("lightmediabrowser-tag-data")},
+        {QStringLiteral("version"), 1},
+        {QStringLiteral("exportedAt"), QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)},
+        {QStringLiteral("categories"), categories},
+        {QStringLiteral("videos"), videos}
+    });
+    return true;
+}
+
+bool Database::inspectTagDataImport(const QJsonDocument &document, TagDataImportSummary *summary,
+                                    QString *error) const
+{
+    if (!summary) return setError(error, QStringLiteral("Import summary output is unavailable."));
+    *summary = {};
+    ParsedTagData parsed;
+    if (!parseTagData(document, &parsed, error)) return false;
+
+    TagDataImportSummary result;
+    QSqlQuery query(m_database);
+    if (!query.prepare(QStringLiteral("SELECT 1 FROM videos WHERE file_path=?"))) {
+        return setError(error, QStringLiteral("Could not prepare video matching query: %1")
+                                   .arg(query.lastError().text()));
+    }
+    for (const ImportedVideo &video : parsed.videos) {
+        query.bindValue(0, video.path);
+        if (!query.exec()) {
+            return setError(error, QStringLiteral("Could not match video %1: %2")
+                                       .arg(video.path, query.lastError().text()));
+        }
+        const bool found = query.next();
+        if (!found && query.lastError().isValid()) {
+            return setError(error, QStringLiteral("Could not read match for video %1: %2")
+                                       .arg(video.path, query.lastError().text()));
+        }
+        if (found) ++result.matchedVideos;
+        else ++result.unmatchedVideos;
+        query.finish();
+    }
+    *summary = result;
+    return true;
+}
+
+bool Database::importTagData(const QJsonDocument &document, TagDataImportSummary *summary,
+                             QString *error)
+{
+    if (!summary) return setError(error, QStringLiteral("Import summary output is unavailable."));
+    *summary = {};
+    ParsedTagData parsed;
+    if (!parseTagData(document, &parsed, error)) return false;
+    if (!m_database.transaction()) {
+        return setError(error, QStringLiteral("Could not start tag data import transaction: %1")
+                                   .arg(m_database.lastError().text()));
+    }
+
+    auto rollback = [this, error](const QString &message) {
+        m_database.rollback();
+        if (error) *error = message;
+        return false;
+    };
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+    QSqlQuery categoryInsert(m_database);
+    if (!categoryInsert.prepare(QStringLiteral(
+            "INSERT OR IGNORE INTO categories (name, created_at) VALUES (?, ?)"))) {
+        return rollback(QStringLiteral("Could not prepare category import: %1")
+                            .arg(categoryInsert.lastError().text()));
+    }
+    QSqlQuery categoryLookup(m_database);
+    if (!categoryLookup.prepare(QStringLiteral("SELECT id FROM categories WHERE name=?"))) {
+        return rollback(QStringLiteral("Could not prepare category lookup: %1")
+                            .arg(categoryLookup.lastError().text()));
+    }
+    QSqlQuery tagInsert(m_database);
+    if (!tagInsert.prepare(QStringLiteral(
+            "INSERT OR IGNORE INTO tags (category_id, name, created_at) VALUES (?, ?, ?)"))) {
+        return rollback(QStringLiteral("Could not prepare tag import: %1")
+                            .arg(tagInsert.lastError().text()));
+    }
+    for (const ImportedCategory &category : parsed.categories) {
+        categoryInsert.bindValue(0, category.name);
+        categoryInsert.bindValue(1, now);
+        if (!categoryInsert.exec()) {
+            return rollback(QStringLiteral("Could not import category %1: %2")
+                                .arg(category.name, categoryInsert.lastError().text()));
+        }
+        categoryInsert.finish();
+
+        categoryLookup.bindValue(0, category.name);
+        if (!categoryLookup.exec()) {
+            return rollback(QStringLiteral("Could not find imported category %1: %2")
+                                .arg(category.name, categoryLookup.lastError().text()));
+        }
+        if (!categoryLookup.next()) {
+            return rollback(QStringLiteral("Imported category was not found: %1").arg(category.name));
+        }
+        const qint64 categoryId = categoryLookup.value(0).toLongLong();
+        categoryLookup.finish();
+
+        for (const QString &tagName : category.tags) {
+            tagInsert.bindValue(0, categoryId);
+            tagInsert.bindValue(1, tagName);
+            tagInsert.bindValue(2, now);
+            if (!tagInsert.exec()) {
+                return rollback(QStringLiteral("Could not import tag %1: %2")
+                                    .arg(tagName, tagInsert.lastError().text()));
+            }
+            tagInsert.finish();
+        }
+    }
+
+    QSqlQuery videoLookup(m_database);
+    if (!videoLookup.prepare(QStringLiteral("SELECT id FROM videos WHERE file_path=?"))) {
+        return rollback(QStringLiteral("Could not prepare video lookup: %1")
+                            .arg(videoLookup.lastError().text()));
+    }
+    QSqlQuery videoUpdate(m_database);
+    if (!videoUpdate.prepare(QStringLiteral("UPDATE videos SET note=?, updated_at=? WHERE id=?"))) {
+        return rollback(QStringLiteral("Could not prepare video update: %1")
+                            .arg(videoUpdate.lastError().text()));
+    }
+    QSqlQuery deleteAssignments(m_database);
+    if (!deleteAssignments.prepare(QStringLiteral("DELETE FROM video_tags WHERE video_id=?"))) {
+        return rollback(QStringLiteral("Could not prepare tag assignment update: %1")
+                            .arg(deleteAssignments.lastError().text()));
+    }
+    QSqlQuery tagLookup(m_database);
+    if (!tagLookup.prepare(QStringLiteral(
+            "SELECT t.id FROM tags t JOIN categories c ON c.id=t.category_id "
+            "WHERE c.name=? AND t.name=?"))) {
+        return rollback(QStringLiteral("Could not prepare imported tag lookup: %1")
+                            .arg(tagLookup.lastError().text()));
+    }
+    QSqlQuery assignmentInsert(m_database);
+    if (!assignmentInsert.prepare(QStringLiteral(
+            "INSERT INTO video_tags (video_id, tag_id) VALUES (?, ?)"))) {
+        return rollback(QStringLiteral("Could not prepare tag assignment import: %1")
+                            .arg(assignmentInsert.lastError().text()));
+    }
+
+    TagDataImportSummary result;
+    for (const ImportedVideo &video : parsed.videos) {
+        videoLookup.bindValue(0, video.path);
+        if (!videoLookup.exec()) {
+            return rollback(QStringLiteral("Could not match video %1: %2")
+                                .arg(video.path, videoLookup.lastError().text()));
+        }
+        const bool videoFound = videoLookup.next();
+        if (!videoFound && videoLookup.lastError().isValid()) {
+            return rollback(QStringLiteral("Could not read match for video %1: %2")
+                                .arg(video.path, videoLookup.lastError().text()));
+        }
+        if (!videoFound) {
+            ++result.unmatchedVideos;
+            videoLookup.finish();
+            continue;
+        }
+        const qint64 videoId = videoLookup.value(0).toLongLong();
+        videoLookup.finish();
+        ++result.matchedVideos;
+
+        videoUpdate.bindValue(0, video.note);
+        videoUpdate.bindValue(1, now);
+        videoUpdate.bindValue(2, videoId);
+        if (!videoUpdate.exec()) {
+            return rollback(QStringLiteral("Could not update video %1: %2")
+                                .arg(video.path, videoUpdate.lastError().text()));
+        }
+        videoUpdate.finish();
+
+        deleteAssignments.bindValue(0, videoId);
+        if (!deleteAssignments.exec()) {
+            return rollback(QStringLiteral("Could not replace tags for video %1: %2")
+                                .arg(video.path, deleteAssignments.lastError().text()));
+        }
+        deleteAssignments.finish();
+
+        for (const ImportedTag &tag : video.tags) {
+            tagLookup.bindValue(0, tag.category);
+            tagLookup.bindValue(1, tag.name);
+            if (!tagLookup.exec()) {
+                return rollback(QStringLiteral("Could not find imported tag %1/%2: %3")
+                                    .arg(tag.category, tag.name, tagLookup.lastError().text()));
+            }
+            if (!tagLookup.next()) {
+                return rollback(QStringLiteral("Imported tag was not found: %1/%2")
+                                    .arg(tag.category, tag.name));
+            }
+            const qint64 tagId = tagLookup.value(0).toLongLong();
+            tagLookup.finish();
+
+            assignmentInsert.bindValue(0, videoId);
+            assignmentInsert.bindValue(1, tagId);
+            if (!assignmentInsert.exec()) {
+                return rollback(QStringLiteral("Could not assign tag %1/%2 to video %3: %4")
+                                    .arg(tag.category, tag.name, video.path,
+                                         assignmentInsert.lastError().text()));
+            }
+            assignmentInsert.finish();
+        }
+    }
+
+    if (!m_database.commit()) {
+        const QString commitError = m_database.lastError().text();
+        m_database.rollback();
+        return setError(error, QStringLiteral("Could not commit tag data import: %1").arg(commitError));
+    }
+    *summary = result;
+    return true;
 }
 
 Video Database::findById(qint64 id) const

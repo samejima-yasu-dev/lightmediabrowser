@@ -37,6 +37,8 @@ private slots:
     void removeFolder();
     void scanFolder();
     void generateAllThumbnails();
+    void exportTagData();
+    void importTagData();
     void refreshVideos();
     void showDetails(QListWidgetItem *item);
     void playVideo(QListWidgetItem *item);

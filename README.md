@@ -73,6 +73,11 @@ A matching file size or filename does not confirm that video contents are identi
 * Assign tags to videos
 * Use tags and notes to organize large collections
 * Mark videos as favorites
+* Export and import tag categories, video tag assignments, and notes as JSON from the **Tag Data** menu
+
+Imports merge tag definitions and update notes and tag assignments only for videos whose file paths match exactly. Unmatched videos are skipped. Export files can contain local file paths and notes; the default `LightMediaBrowser-tag-data*.json` filenames are ignored by Git.
+
+The JSON contains `categories` entries with a `name` and `tags` list, plus `videos` entries with `path`, `fileName`, `fileSize`, `note`, and tag objects containing `category` and `name`. Keep each video `path` unchanged when importing edited data.
 
 ### Video Metadata
 

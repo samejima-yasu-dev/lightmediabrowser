@@ -3,6 +3,7 @@
 #include "domain/Video.h"
 
 #include <QList>
+#include <QJsonDocument>
 #include <QString>
 #include <QSqlDatabase>
 
@@ -16,6 +17,12 @@ struct TagInfo
     qint64 id = 0;         ///< タグID（カテゴリ行では0）
     QString name;       ///< タグの表示名
     QString category;   ///< 大項目（カテゴリ）名
+};
+
+struct TagDataImportSummary
+{
+    int matchedVideos = 0;
+    int unmatchedVideos = 0;
 };
 
 /**
@@ -97,6 +104,12 @@ public:
      * @return TagInfoオブジェクトのリスト
      */
     QList<TagInfo> tagsWithCategories() const;
+
+    bool exportTagData(QJsonDocument *document, QString *error = nullptr) const;
+    bool inspectTagDataImport(const QJsonDocument &document, TagDataImportSummary *summary,
+                              QString *error = nullptr) const;
+    bool importTagData(const QJsonDocument &document, TagDataImportSummary *summary,
+                       QString *error = nullptr);
 
     /**
      * @brief 新しい大項目（カテゴリ）を追加する

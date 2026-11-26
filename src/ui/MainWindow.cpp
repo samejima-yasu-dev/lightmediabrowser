@@ -20,11 +20,14 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QIcon>
 #include <QInputDialog>
 #include <QMap>
+#include <QSaveFile>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QDesktopServices>
 #include <QScrollBar>
 #include <QSpinBox>
@@ -42,6 +45,16 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QtConcurrent/QtConcurrentRun>
+
+namespace
+{
+QString defaultTagDataFilePath()
+{
+    QString directory = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    if (directory.isEmpty()) directory = QDir::homePath();
+    return QDir(directory).filePath(QStringLiteral("LightMediaBrowser-tag-data.json"));
+}
+}
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -256,6 +269,14 @@ void MainWindow::buildUi()
     themeAction->setCheckable(true);
     themeAction->setChecked(defaultDark); // 起動時の設定状態に合わせる
     themeAction->setToolTip(QStringLiteral("Switch between Dark and Light theme"));
+
+    QMenu *tagDataMenu = menuBar()->addMenu(QStringLiteral("Tag Data"));
+    tagDataMenu->setObjectName(QStringLiteral("tagDataMenu"));
+    QAction *exportTagDataAction = tagDataMenu->addAction(QStringLiteral("Export JSON..."));
+    exportTagDataAction->setObjectName(QStringLiteral("exportTagDataAction"));
+    QAction *importTagDataAction = tagDataMenu->addAction(QStringLiteral("Import JSON..."));
+    importTagDataAction->setObjectName(QStringLiteral("importTagDataAction"));
+
     connect(addAction, &QAction::triggered, this, &MainWindow::addFolder);
     connect(removeAction, &QAction::triggered, this, &MainWindow::removeFolder);
     connect(scanAction, &QAction::triggered, this, &MainWindow::scanFolder);
@@ -273,6 +294,8 @@ void MainWindow::buildUi()
         QSettings().setValue(QStringLiteral("ui/darkTheme"), dark);
         setStyleSheet(dark ? lightStyle + darkStyle : lightStyle);
     });
+    connect(exportTagDataAction, &QAction::triggered, this, &MainWindow::exportTagData);
+    connect(importTagDataAction, &QAction::triggered, this, &MainWindow::importTagData);
     connect(m_folderSelector, &QComboBox::currentTextChanged, this, [this](const QString &folder) {
         m_currentFolder = folder;
     });
@@ -398,6 +421,102 @@ void MainWindow::buildUi()
     });
 
     statusBar()->showMessage(QStringLiteral("Ready"));
+}
+
+void MainWindow::exportTagData()
+{
+    if (!m_databaseReady) return;
+    QString filePath = QFileDialog::getSaveFileName(
+        this, QStringLiteral("Export Tag Data"), defaultTagDataFilePath(),
+        QStringLiteral("JSON files (*.json)"));
+    if (filePath.isEmpty()) return;
+    if (QFileInfo(filePath).suffix().compare(QStringLiteral("json"), Qt::CaseInsensitive) != 0) {
+        filePath += QStringLiteral(".json");
+    }
+
+    QJsonDocument document;
+    QString error;
+    if (!m_database.exportTagData(&document, &error)) {
+        QMessageBox::critical(this, QStringLiteral("Export Failed"), error);
+        return;
+    }
+
+    QSaveFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, QStringLiteral("Export Failed"), file.errorString());
+        return;
+    }
+    const QByteArray json = document.toJson(QJsonDocument::Indented);
+    if (file.write(json) != json.size()) {
+        const QString writeError = file.errorString();
+        file.cancelWriting();
+        QMessageBox::critical(this, QStringLiteral("Export Failed"), writeError);
+        return;
+    }
+    if (!file.commit()) {
+        QMessageBox::critical(this, QStringLiteral("Export Failed"), file.errorString());
+        return;
+    }
+    statusBar()->showMessage(QStringLiteral("Tag data exported to %1").arg(filePath), 10000);
+}
+
+void MainWindow::importTagData()
+{
+    if (!m_databaseReady) return;
+    const QString filePath = QFileDialog::getOpenFileName(
+        this, QStringLiteral("Import Tag Data"), defaultTagDataFilePath(),
+        QStringLiteral("JSON files (*.json)"));
+    if (filePath.isEmpty()) return;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, QStringLiteral("Import Failed"), file.errorString());
+        return;
+    }
+    const QByteArray json = file.readAll();
+    if (file.error() != QFileDevice::NoError) {
+        QMessageBox::critical(this, QStringLiteral("Import Failed"), file.errorString());
+        return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        QMessageBox::critical(
+            this, QStringLiteral("Import Failed"),
+            QStringLiteral("Invalid JSON: %1").arg(parseError.errorString()));
+        return;
+    }
+
+    TagDataImportSummary preview;
+    QString error;
+    if (!m_database.inspectTagDataImport(document, &preview, &error)) {
+        QMessageBox::critical(this, QStringLiteral("Import Failed"), error);
+        return;
+    }
+    const QString confirmation = QStringLiteral(
+        "Import %1 matching video(s) and skip %2 unmatched video(s)?\n"
+        "Matching videos' notes and tag assignments will be replaced. "
+        "Missing categories and tags will be added; existing ones will be kept.")
+        .arg(preview.matchedVideos)
+        .arg(preview.unmatchedVideos);
+    if (QMessageBox::question(this, QStringLiteral("Import Tag Data"), confirmation,
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    TagDataImportSummary imported;
+    if (!m_database.importTagData(document, &imported, &error)) {
+        QMessageBox::critical(this, QStringLiteral("Import Failed"), error);
+        return;
+    }
+    refreshTags();
+    refreshVideos();
+    statusBar()->showMessage(
+        QStringLiteral("Tag data imported: %1 video(s) updated, %2 unmatched.")
+            .arg(imported.matchedVideos)
+            .arg(imported.unmatchedVideos),
+        10000);
 }
 
 void MainWindow::generateAllThumbnails()

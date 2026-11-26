@@ -1,6 +1,7 @@
 #include "ui/MainWindow.h"
 
 #include <QApplication>
+#include <QAction>
 #include <QComboBox>
 #include <QLineEdit>
 #include <QListWidget>
@@ -16,6 +17,7 @@ class MainWindowSmokeTest : public QObject
 private slots:
     void initTestCase();
     void startupAndFilterControlsAreWired();
+    void tagDataImportAndExportActionsAreAvailable();
 };
 
 void MainWindowSmokeTest::initTestCase()
@@ -62,6 +64,16 @@ void MainWindowSmokeTest::startupAndFilterControlsAreWired()
     QCOMPARE(duplicateFilter->currentIndex(), 1);
     QCOMPARE(sort->currentIndex(), 2);
     QCOMPARE(plays->value(), 1);
+}
+
+void MainWindowSmokeTest::tagDataImportAndExportActionsAreAvailable()
+{
+    MainWindow window;
+
+    QAction *exportAction = window.findChild<QAction *>(QStringLiteral("exportTagDataAction"));
+    QAction *importAction = window.findChild<QAction *>(QStringLiteral("importTagDataAction"));
+    QVERIFY(exportAction);
+    QVERIFY(importAction);
 }
 
 QTEST_MAIN(MainWindowSmokeTest)
