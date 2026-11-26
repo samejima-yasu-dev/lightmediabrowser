@@ -4,7 +4,7 @@
 
 **Bring videos scattered across folders and drives into one fast, lightweight local library — without uploading them to the cloud or moving the original files.**
 
-<img width="2560" height="1543" alt="Screen" src="https://github.com/user-attachments/assets/880624bd-9cc3-43e8-8ed3-412a1a702df6" />
+<img width="1600" alt="LightMediaBrowser showing a 10,000-video library" src="benchmarks/images/lightmediabrowser-benchmark.png" />
 
 It is designed specifically for **video management** — scanning, browsing, searching, tagging, and organizing your collection.
 
@@ -56,6 +56,30 @@ The application focuses on **managing your video collection**, rather than tryin
 * Additional scene previews are generated only for the selected video and cached for later
 * Database-backed library
 * These on-demand workflows help keep browsing responsive and avoid unnecessary work across large collections
+
+### Performance snapshot
+
+The following measurements were recorded on 2026-11-26 with LightMediaBrowser 0.0.17 (Release), Qt 6.10.2, and SQLite 3.46.1 on Ubuntu 26.04, Linux 7.0.0-44, an AMD Ryzen 7 7735HS (16 logical CPUs), and 31.6 GB RAM.
+
+| Videos in database | Rows added in this step | Filename search (1 match) | Search count | Unfiltered 100-item page |
+| ---: | ---: | ---: | ---: | ---: |
+| 100 | 100 | 0.084 ms | 0.034 ms | 0.136 ms |
+| 1,000 | 900 | 0.168 ms | 0.124 ms | 0.820 ms |
+| 10,000 | 9,000 | 1.023 ms | 1.002 ms | 7.885 ms |
+
+The actual folder scanner found all 10,000 files in 84 ms. Search and count figures are medians of 21 measured calls after a warm-up, using the application's `searchVideosLight` and `countVideosLight` database methods. Each filename query matched one item; the page query loaded up to 100 items.
+
+| Startup scenario | Window visible | Peak process RSS |
+| --- | ---: | ---: |
+| First launch with a new, empty database | 161 ms | 148 MiB |
+| Empty database relaunch (5 runs, median) | 163 ms | 146 MiB median |
+| 10,000-video database (5 runs, median) | 163 ms | 161 MiB median; 171 MiB maximum |
+
+Startup time is measured from process launch until the application window is visible under X11/XWayland. RSS is the Linux process high-water mark, read two seconds after the window appears; it excludes child processes such as FFmpeg. The OS file cache was not cleared between runs.
+
+The dataset consists of one generated, one-second 640x360 MP4 based on the application icon, hard-linked under 10,000 unique names in 100 directories. It exercises file enumeration and database scaling, but does not represent 10,000 distinct video contents, codecs, or thumbnail decoding. Search uses the current filename/notes substring query with a single matching filename; these local results are not guarantees for other hardware or query patterns.
+
+See [the benchmark guide](benchmarks/README.md) to reproduce the measurements. Generated media and per-run databases stay under the ignored `benchmarks/generated/` directory.
 
 ### Search & Filtering
 
@@ -313,6 +337,10 @@ lightmediabrowser/
 ├── resources/
 │   ├── migrations/
 │   └── resources.qrc
+├── benchmarks/
+│   ├── DatabaseBenchmark.cpp
+│   ├── generate_dataset.py
+│   └── run_benchmark.py
 ├── src/
 │   ├── database/
 │   ├── domain/

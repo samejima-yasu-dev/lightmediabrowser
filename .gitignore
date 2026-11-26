@@ -1,8 +1,11 @@
 build/
+/benchmarks/generated/
 /docs/
 *.log
 *.user
 *.swp
+__pycache__/
+*.py[cod]
 
 # AppImage build artifacts
 AppDir/

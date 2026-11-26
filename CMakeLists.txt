@@ -12,6 +12,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Concurrent Network)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    find_program(FFMPEG_EXECUTABLE NAMES ffmpeg)
+    find_program(FFPROBE_EXECUTABLE NAMES ffprobe)
 
     add_executable(thumbnail_service_test
         tests/ThumbnailServiceTest.cpp
@@ -34,6 +37,22 @@ if(BUILD_TESTING)
     target_include_directories(database_test PRIVATE src)
     target_link_libraries(database_test PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME database_test COMMAND database_test)
+
+    add_executable(database_benchmark_test
+        tests/DatabaseBenchmarkTest.cpp
+        benchmarks/DatabaseBenchmark.h
+        benchmarks/DatabaseBenchmark.cpp
+        src/domain/Video.h
+        src/database/Database.h
+        src/database/Database.cpp
+        src/scanner/MediaScanner.h
+        src/scanner/MediaScanner.cpp
+        resources/resources.qrc
+    )
+    target_include_directories(database_benchmark_test PRIVATE . src)
+    target_link_libraries(database_benchmark_test PRIVATE Qt6::Core Qt6::Sql Qt6::Concurrent Qt6::Test)
+    target_compile_definitions(database_benchmark_test PRIVATE LMB_BENCHMARK_BUILD_TYPE="$<CONFIG>")
+    add_test(NAME database_benchmark_test COMMAND database_benchmark_test)
 
     add_executable(media_scanner_test
         tests/MediaScannerTest.cpp
@@ -130,7 +149,30 @@ if(BUILD_TESTING)
     target_link_libraries(mainwindow_smoke_test PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql Qt6::Concurrent Qt6::Network Qt6::Test)
     add_test(NAME mainwindow_smoke_test COMMAND mainwindow_smoke_test)
     set_tests_properties(mainwindow_smoke_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    if(Python3_Interpreter_FOUND AND FFMPEG_EXECUTABLE AND FFPROBE_EXECUTABLE)
+        add_test(NAME benchmark_python_tests
+            COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests -p "benchmark_*_test.py")
+        set_tests_properties(benchmark_python_tests PROPERTIES WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    endif()
     set_tests_properties(visible_thumbnail_rows_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+option(BUILD_BENCHMARKS "Build the standalone database benchmark runner" OFF)
+if(BUILD_BENCHMARKS)
+    add_executable(lightmediabrowser_database_benchmark
+        benchmarks/database_benchmark_main.cpp
+        benchmarks/DatabaseBenchmark.h
+        benchmarks/DatabaseBenchmark.cpp
+        src/domain/Video.h
+        src/database/Database.h
+        src/database/Database.cpp
+        src/scanner/MediaScanner.h
+        src/scanner/MediaScanner.cpp
+        resources/resources.qrc
+    )
+    target_include_directories(lightmediabrowser_database_benchmark PRIVATE . src)
+    target_link_libraries(lightmediabrowser_database_benchmark PRIVATE Qt6::Core Qt6::Sql Qt6::Concurrent)
+    target_compile_definitions(lightmediabrowser_database_benchmark PRIVATE LMB_BENCHMARK_BUILD_TYPE="$<CONFIG>")
 endif()
 
 add_executable(lightmediabrowser
