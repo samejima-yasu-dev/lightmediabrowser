@@ -52,7 +52,9 @@ if(BUILD_TESTING)
     target_include_directories(database_benchmark_test PRIVATE . src)
     target_link_libraries(database_benchmark_test PRIVATE Qt6::Core Qt6::Sql Qt6::Concurrent Qt6::Test)
     target_compile_definitions(database_benchmark_test PRIVATE LMB_BENCHMARK_BUILD_TYPE="$<CONFIG>")
-    add_test(NAME database_benchmark_test COMMAND database_benchmark_test)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_test(NAME database_benchmark_test COMMAND database_benchmark_test)
+    endif()
 
     add_executable(media_scanner_test
         tests/MediaScannerTest.cpp
